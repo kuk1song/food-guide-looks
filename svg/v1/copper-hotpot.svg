@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="Old-Beijing copper chimney hotpot with thin mutton slices and a round sesame-sugar flatbread">
+<!-- Hand-written SVG. Method per DESIGN.md: flat fills from the palette, colour plate shifted translate(-3 -2), ink plate (#2B211A) centred. -->
+<style>.i{fill:none;stroke:#2B211A;stroke-linecap:round;stroke-linejoin:round}</style>
+<path transform="translate(-3 -2)" fill="#E9B33F" d="M100 40 a26 13 0 1 0 52 0 a26 13 0 1 0 -52 0 Z"/><path class="i" stroke-width="4" d="M100 40 a26 13 0 1 0 52 0 a26 13 0 1 0 -52 0 Z"/>
+<path fill="#8A5A25" fill-opacity="0.35" d="M106 40 a20 8 0 1 0 40 0 a20 8 0 1 0 -40 0 Z"/>
+<path fill="#FFFFFF" d="M112.2 38 a1.8 1.1 0 1 0 3.6 0 a1.8 1.1 0 1 0 -3.6 0 Z"/>
+<path fill="#FFFFFF" d="M118.2 34 a1.8 1.1 0 1 0 3.6 0 a1.8 1.1 0 1 0 -3.6 0 Z"/>
+<path fill="#FFFFFF" d="M126.2 36 a1.8 1.1 0 1 0 3.6 0 a1.8 1.1 0 1 0 -3.6 0 Z"/>
+<path fill="#FFFFFF" d="M134.2 40 a1.8 1.1 0 1 0 3.6 0 a1.8 1.1 0 1 0 -3.6 0 Z"/>
+<path fill="#FFFFFF" d="M120.2 44 a1.8 1.1 0 1 0 3.6 0 a1.8 1.1 0 1 0 -3.6 0 Z"/>
+<path fill="#FFFFFF" d="M130.2 46 a1.8 1.1 0 1 0 3.6 0 a1.8 1.1 0 1 0 -3.6 0 Z"/>
+<path fill="#FFFFFF" d="M138.2 34 a1.8 1.1 0 1 0 3.6 0 a1.8 1.1 0 1 0 -3.6 0 Z"/>
+<path fill="#FFFFFF" d="M110.2 44 a1.8 1.1 0 1 0 3.6 0 a1.8 1.1 0 1 0 -3.6 0 Z"/>
+<path fill="#FFFFFF" d="M126.2 30 a1.8 1.1 0 1 0 3.6 0 a1.8 1.1 0 1 0 -3.6 0 Z"/>
+<path transform="translate(-3 -2)" fill="#8A5A25" d="M30 140 L40 112 H88 L98 140 Z"/><path class="i" stroke-width="4" d="M30 140 L40 112 H88 L98 140 Z"/>
+<path transform="translate(-3 -2)" fill="#2B211A" d="M54 140 V130 Q64 120 74 130 V140 Z"/><path class="i" stroke-width="2.6" d="M54 140 V130 Q64 120 74 130 V140 Z"/>
+<path transform="translate(-3 -2)" fill="#E9B33F" d="M10 90 Q12 120 64 120 Q116 120 118 90 Z"/><path class="i" stroke-width="4" d="M10 90 Q12 120 64 120 Q116 120 118 90 Z"/>
+<path class="i" stroke-width="2.2" stroke-opacity="0.6" d="M18 104 Q64 116 110 104"/>
+<path transform="translate(-3 -2)" fill="#E9B33F" d="M4 98 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0 Z"/><path class="i" stroke-width="3" d="M4 98 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0 Z"/>
+<path transform="translate(-3 -2)" fill="#E9B33F" d="M112 98 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0 Z"/><path class="i" stroke-width="3" d="M112 98 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0 Z"/>
+<path transform="translate(-3 -2)" fill="#FFFFFF" d="M10 90 a54 12 0 1 0 108 0 a54 12 0 1 0 -108 0 Z"/><path class="i" stroke-width="4" d="M10 90 a54 12 0 1 0 108 0 a54 12 0 1 0 -108 0 Z"/>
+<path fill="#B3361C" d="M24 90 q6 -4 14 -1 q-6 4 -14 1 Z M90 92 q7 -3 14 0 q-7 4 -14 0 Z"/>
+<path transform="translate(-3 -2)" fill="#E9B33F" d="M52 92 L54 52 H74 L76 92 Z"/><path class="i" stroke-width="4" d="M52 92 L54 52 H74 L76 92 Z"/>
+<path transform="translate(-3 -2)" fill="#8A5A25" d="M46 52 H82 L77 42 H51 Z"/><path class="i" stroke-width="3" d="M46 52 H82 L77 42 H51 Z"/>
+<path fill="#2B211A" d="M52 42 a12 3 0 1 0 24 0 a12 3 0 1 0 -24 0 Z"/>
+<path class="i" stroke-width="2.2" stroke-opacity="0.6" d="M53 68 H75 M53 80 H75"/>
+<path class="i" stroke-width="4" d="M10 90 a54 12 0 1 0 108 0 a54 12 0 1 0 -108 0 Z"/>
+<path class="i" stroke-width="2.2" d="M34 80 q-4 -6 0 -11 q4 -5 0 -10 M96 80 q4 -6 0 -11 q-4 -5 0 -10"/>
+<path transform="translate(-3 -2)" fill="#FFFFFF" d="M100 132 a28 10 0 1 0 56 0 a28 10 0 1 0 -56 0 Z"/><path class="i" stroke-width="4" d="M100 132 a28 10 0 1 0 56 0 a28 10 0 1 0 -56 0 Z"/><path class="i" stroke-width="2.2" stroke-opacity="0.45" d="M106.16 131 a21.84 7 0 1 0 43.68 0 a21.84 7 0 1 0 -43.68 0 Z"/>
+<path transform="translate(-3 -2) translate(116 130) rotate(-8)" fill="#B3361C" d="M-10 -3 Q0 -6 10 -3 L9 3 Q0 5 -9 3 Z"/><path transform="translate(116 130) rotate(-8)" class="i" stroke-width="2" d="M-10 -3 Q0 -6 10 -3 L9 3 Q0 5 -9 3 Z"/>
+<path transform="translate(116 130) rotate(-8)" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" d="M-6 -1 q4 2 9 0"/>
+<path transform="translate(-3 -2) translate(128 127) rotate(4)" fill="#B3361C" d="M-10 -3 Q0 -6 10 -3 L9 3 Q0 5 -9 3 Z"/><path transform="translate(128 127) rotate(4)" class="i" stroke-width="2" d="M-10 -3 Q0 -6 10 -3 L9 3 Q0 5 -9 3 Z"/>
+<path transform="translate(128 127) rotate(4)" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" d="M-6 -1 q4 2 9 0"/>
+<path transform="translate(-3 -2) translate(140 131) rotate(12)" fill="#B3361C" d="M-10 -3 Q0 -6 10 -3 L9 3 Q0 5 -9 3 Z"/><path transform="translate(140 131) rotate(12)" class="i" stroke-width="2" d="M-10 -3 Q0 -6 10 -3 L9 3 Q0 5 -9 3 Z"/>
+<path transform="translate(140 131) rotate(12)" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" d="M-6 -1 q4 2 9 0"/>
+<path transform="translate(-3 -2)" fill="none" stroke="#8A5A25" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" d="M154 58 L108 84 M160 60.4 L111.6 85.5"/><path class="i" stroke-width="2.4" d="M154 58 L108 84 M160 60.4 L111.6 85.5"/>
+<path transform="translate(-3 -2)" fill="#B3361C" d="M100 84 q6 -4 12 -1 l-2 6 q-6 2 -11 0 Z"/><path class="i" stroke-width="2" d="M100 84 q6 -4 12 -1 l-2 6 q-6 2 -11 0 Z"/>
+</svg>

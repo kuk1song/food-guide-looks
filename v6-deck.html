@@ -1,0 +1,1254 @@
+<!doctype html>
+<!--
+  V6 "Deck": interaction-first phone prototype.
+  Font: Bricolage Grotesque (variable, latin subset), designed by Mathieu Triay,
+  SIL Open Font License 1.1. Self-hosted from fonts/ (Fontsource
+  @fontsource-variable/bricolage-grotesque 5.2.7). Chinese uses the system stack.
+  All imagery is hand-written inline SVG. No network requests at runtime.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0E0E0F">
+<title>Deck · China Food Guide</title>
+<style>
+@font-face {
+  font-family: "Bricolage";
+  src: url("fonts/bricolage-grotesque-latin-standard-normal.woff2") format("woff2");
+  font-weight: 200 800; font-stretch: 75% 100%; font-display: swap;
+}
+:root {
+  --bg: #0E0E0F; --bg2: #1B1B1E; --bg3: #26262A;
+  --ink: #F4F1EA; --mute: #BDB8AE; --line: rgba(244, 241, 234, .18);
+  --lime: #C8F03C; --lime-ink: #10140A;
+  --paper: #F7F4EE; --paper-ink: #151515; --paper-mute: #57534C; --paper-line: #DED8CC;
+  --warn-bg: #FFE9E2; --warn-ink: #7A1607;
+  --spring: cubic-bezier(.34, 1.56, .64, 1);
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --zh: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --pill-h: 64px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: #050505; color: var(--ink);
+  font-family: "Bricolage", system-ui, sans-serif; font-size: 17px; line-height: 1.45;
+  -webkit-font-smoothing: antialiased; overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.zh, [lang="zh-Hans"] { font-family: var(--zh); }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--lime); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+svg.i { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+.phone { position: relative; max-width: 430px; margin: 0 auto; height: 100vh; height: 100dvh; background: var(--bg); overflow: hidden; }
+
+/* ---------- discover ---------- */
+.screen {
+  height: 100%; display: flex; flex-direction: column;
+  padding: var(--safe-t) 0 calc(var(--pill-h) + 18px + var(--safe-b));
+}
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px 6px; min-height: 52px; }
+.brand { display: flex; align-items: center; gap: 9px; text-decoration: none; font-weight: 800; font-stretch: 78%; font-size: 23px; letter-spacing: -.01em; line-height: 1; min-height: 44px; }
+.brand-mark { width: 30px; height: 30px; flex: none; }
+.brand b { color: var(--lime); font-weight: 800; }
+.proto { font-size: 14px; font-weight: 600; color: var(--mute); border: 1.5px solid var(--line); border-radius: 99px; padding: 4px 10px; white-space: nowrap; }
+
+.chipbar { padding: 4px 0 2px; }
+.chips-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 4px 16px 6px; scrollbar-width: none; }
+.chips-scroll::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px;
+  border-radius: 99px; background: var(--bg3); color: var(--ink); font-weight: 600; font-size: 16px; white-space: nowrap;
+  transition: transform .25s var(--spring), background .2s;
+}
+.chip svg.i { width: 18px; height: 18px; }
+.chip:active { transform: scale(.94); }
+.chip.on { background: var(--ink); color: var(--bg); }
+.chip.ghost { background: transparent; box-shadow: inset 0 0 0 1.5px var(--line); }
+.demo { margin: 0; padding: 0 16px; font-size: 15px; color: var(--mute); }
+
+.deck { position: relative; flex: 1 1 auto; min-height: 0; margin: 8px 16px 0; }
+.deck-inner { position: absolute; inset: 0 0 26px 0; }
+.dcard {
+  position: absolute; inset: 0; border-radius: 30px; background: var(--c); color: var(--k);
+  padding: 16px 18px 18px; display: flex; flex-direction: column; overflow: hidden;
+  touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab;
+  transform-origin: 50% 100%; will-change: transform;
+  transition: transform .5s var(--spring), opacity .3s var(--ease);
+}
+.dcard:active { cursor: grabbing; }
+.dcard.l1 { transform: translateY(13px) scale(.95); pointer-events: none; }
+.dcard.l2 { transform: translateY(26px) scale(.9); pointer-events: none; }
+.dcard.hide { transform: translateY(40px) scale(.85); opacity: 0; pointer-events: none; }
+.dcard.l1 .dc-body, .dcard.l2 .dc-body { visibility: hidden; }
+.dc-body { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.dc-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; letter-spacing: .04em; text-transform: uppercase; }
+.dc-fitall { background: var(--k); color: var(--c); border-radius: 99px; padding: 3px 10px; letter-spacing: .02em; }
+.dc-emblem { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 6px 0; }
+.dc-emblem svg { width: 100%; height: 100%; max-height: 210px; }
+.dc-name { margin: 0; font-weight: 800; font-stretch: 75%; font-size: clamp(31px, 10.4vw, 44px); line-height: .94; letter-spacing: -.012em; }
+.dc-sub { margin: 6px 0 0; font-size: 16px; font-weight: 600; line-height: 1.3; }
+.dc-sub .zh { font-weight: 600; }
+.fits { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.fits li { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 700; padding: 4px 10px 4px 7px; border-radius: 99px; border: 2px solid currentColor; line-height: 1.2; }
+.fits li svg.i { width: 16px; height: 16px; stroke-width: 3; }
+.fits li.y { background: var(--k); color: var(--c); border-color: var(--k); }
+.fits li.u { border-style: dashed; }
+.dline { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0 0; font-size: 16px; line-height: 1.35; font-weight: 500; }
+.dline svg.i { width: 20px; height: 20px; margin-top: 1px; }
+.dline.clash, .warn {
+  background: var(--warn-bg); color: var(--warn-ink); border-radius: 14px; padding: 9px 11px;
+  background-image: repeating-linear-gradient(135deg, transparent 0 9px, rgba(122, 22, 7, .07) 9px 13px);
+}
+.dline b { font-weight: 800; }
+.stamp {
+  position: absolute; top: 22px; font-weight: 800; font-stretch: 75%; font-size: 40px; letter-spacing: .02em; text-transform: uppercase;
+  padding: 0 12px; border-radius: 12px; border: 4px solid currentColor; opacity: 0; pointer-events: none;
+}
+.stamp.keep { left: 18px; transform: rotate(-12deg); color: var(--lime); background: var(--lime-ink); }
+.stamp.pass { right: 18px; transform: rotate(12deg); color: var(--ink); background: var(--bg); }
+.deck-empty {
+  position: absolute; inset: 0 0 26px 0; border-radius: 30px; border: 2px dashed var(--line);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; padding: 24px;
+}
+.deck-empty h2 { margin: 0; font-stretch: 75%; font-size: 34px; line-height: 1; }
+
+/* composer (before the sentence becomes chips) */
+.composer {
+  position: absolute; inset: 0 0 26px 0; border-radius: 30px; background: var(--bg2); padding: 20px 18px;
+  display: flex; flex-direction: column; gap: 12px; box-shadow: inset 0 0 0 2px var(--line); z-index: 5;
+}
+.composer label { font-weight: 800; font-stretch: 75%; font-size: 36px; line-height: .98; }
+.composer textarea {
+  flex: 1 1 auto; min-height: 120px; width: 100%; resize: none; border: 0; border-radius: 18px;
+  background: var(--bg3); color: var(--ink); font: 500 21px/1.35 "Bricolage", system-ui, sans-serif; padding: 14px 16px;
+}
+.composer textarea:focus { outline: 2px solid var(--lime); }
+.composer p { margin: 0; color: var(--mute); font-size: 16px; }
+.peek { position: absolute; left: 0; right: 0; bottom: 0; height: 60px; border-radius: 30px; transform-origin: 50% 100%; }
+
+.controls { padding: 6px 16px 0; }
+.meta-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
+.dots { display: flex; align-items: center; }
+.dot { width: 34px; height: 44px; display: grid; place-items: center; }
+.dot span { width: 12px; height: 12px; border-radius: 99px; background: var(--dc); box-shadow: 0 0 0 2px var(--bg); transition: transform .3s var(--spring); }
+.dot[aria-current="true"] span { transform: scale(1.55); box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ink); }
+.dot.kept span { background: transparent; box-shadow: inset 0 0 0 2.5px var(--dc); }
+.tray { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 4px 0 10px; border-radius: 99px; font-weight: 700; font-size: 15px; color: var(--ink); }
+.tray-stack { display: flex; }
+.tray-stack span { width: 30px; height: 30px; border-radius: 99px; background: var(--tc); margin-left: -10px; box-shadow: 0 0 0 2.5px var(--bg); display: grid; place-items: center; color: var(--tk); }
+.tray-stack span svg { width: 22px; height: 22px; }
+.tray-stack span:first-child { margin-left: 0; }
+.tray.bump .tray-stack { animation: bump .45s var(--spring); }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.btns { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding: 4px 0 0; }
+.rb { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 15px; font-weight: 700; color: var(--mute); }
+.rb .disc { width: 64px; height: 64px; border-radius: 99px; display: grid; place-items: center; background: var(--bg3); color: var(--ink); transition: transform .3s var(--spring), background .2s; }
+.rb .disc svg.i { width: 30px; height: 30px; stroke-width: 2.6; }
+.rb.keep .disc { background: var(--lime); color: var(--lime-ink); }
+.rb.info .disc { width: 52px; height: 52px; background: transparent; box-shadow: inset 0 0 0 2px var(--line); }
+.rb:active .disc { transform: scale(.88); }
+.rb.pass { justify-self: end; } .rb.keep { justify-self: start; }
+.deal { width: 100%; min-height: 64px; border-radius: 99px; background: var(--lime); color: var(--lime-ink); font-weight: 800; font-size: 21px; font-stretch: 85%; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform .3s var(--spring); }
+.deal:active { transform: scale(.96); }
+
+/* ---------- floating pill bar ---------- */
+.pillbar {
+  position: fixed; z-index: 60; left: 50%; bottom: calc(10px + var(--safe-b)); transform: translateX(-50%);
+  display: flex; gap: 4px; padding: 6px; height: var(--pill-h); border-radius: 99px;
+  background: rgba(38, 38, 42, .62); -webkit-backdrop-filter: blur(22px) saturate(1.7); backdrop-filter: blur(22px) saturate(1.7);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14);
+  transition: transform .4s var(--spring), opacity .25s;
+}
+.pillbar a { display: flex; align-items: center; gap: 7px; padding: 0 16px; border-radius: 99px; text-decoration: none; font-weight: 700; font-size: 16px; color: var(--ink); white-space: nowrap; min-width: 44px; transition: background .2s, transform .25s var(--spring); }
+.pillbar a:active { transform: scale(.93); }
+.pillbar a[aria-current="page"] { background: rgba(244, 241, 234, .16); }
+.pillbar .badge { min-width: 22px; height: 22px; border-radius: 99px; background: var(--lime); color: var(--lime-ink); font-size: 14px; display: grid; place-items: center; padding: 0 6px; }
+.phone.covered .pillbar { transform: translate(-50%, 140%); opacity: 0; pointer-events: none; }
+
+/* ---------- sheets ---------- */
+.layer { position: fixed; inset: 0; z-index: 50; display: flex; justify-content: center; pointer-events: none; }
+.layer > * { pointer-events: auto; }
+.scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, .5); opacity: 0; transition: opacity .3s; }
+.layer.open .scrim { opacity: 1; }
+.sheet {
+  position: absolute; left: 50%; width: min(100%, 430px); top: 0; height: 100%;
+  margin-left: max(-215px, -50%);
+  background: var(--paper); color: var(--paper-ink); border-radius: 26px 26px 0 0;
+  display: flex; flex-direction: column; transform: translateY(100%); will-change: transform;
+}
+.sheet.anim { transition: transform .5s var(--spring); }
+.grab { flex: none; touch-action: none; cursor: grab; padding: 8px 18px 12px; background: var(--c); color: var(--k); border-radius: 26px 26px 0 0; user-select: none; -webkit-user-select: none; }
+.handle { display: block; width: 44px; height: 5px; border-radius: 99px; background: currentColor; opacity: .55; margin: 0 auto 10px; }
+.grab-top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 8px; margin-bottom: 4px; }
+.grab-top .handle { margin: 4px 0 0; }
+.grab-top .proto { justify-self: start; }
+.grab-row { display: flex; align-items: flex-start; gap: 12px; }
+.grab-row .emb { width: 76px; height: 62px; flex: none; }
+.grab-row h2 { margin: 0; font-weight: 800; font-stretch: 75%; font-size: 32px; line-height: .95; letter-spacing: -.01em; }
+.grab-row p { margin: 4px 0 0; font-size: 16px; font-weight: 600; }
+.grab .proto { color: inherit; border-color: currentColor; opacity: .85; font-size: 13px; }
+.grab-meta { margin-top: 8px; font-size: 16px; font-weight: 700; line-height: 1.3; }
+.sh-actions .btn { font-size: 16px; padding: 0 10px; gap: 6px; }
+.sh-actions .btn svg.i { width: 20px; height: 20px; }
+.sh-x { width: 44px; height: 44px; border-radius: 99px; display: grid; place-items: center; margin: -6px -8px 0 auto; flex: none; }
+.sh-scroll { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding: 16px 18px 24px; }
+.sh-why { font-size: 22px; line-height: 1.28; font-weight: 600; margin: 0 0 14px; letter-spacing: -.005em; }
+.sh-scroll .fits { margin: 0 0 4px; color: var(--paper-ink); }
+.sh-scroll .fits li.y { background: var(--paper-ink); color: var(--paper); border-color: var(--paper-ink); }
+.sh-scroll .dline { color: var(--paper-ink); }
+.sh-scroll .dline.clash { color: var(--warn-ink); }
+.sec { margin: 22px 0 0; }
+.sec h3, .o-h { margin: 0 0 6px; font-size: 15px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--paper-mute); }
+.sec p { margin: 0; }
+.plate {
+  margin: 20px 0 0; width: 100%; text-align: left; border-radius: 20px; padding: 14px 16px 16px; background: var(--paper-ink); color: var(--paper);
+  display: block; transition: transform .3s var(--spring);
+}
+.plate:active { transform: scale(.98); }
+.plate-l { display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #CFC9BD; }
+.plate .zh { display: block; font-size: 27px; line-height: 1.3; font-weight: 600; margin: 8px 0 6px; color: #fff; }
+.plate .en { font-size: 16px; color: #DCD6CA; }
+.note { font-size: 16px; color: var(--paper-mute); margin: 8px 0 0; }
+.dishes { list-style: none; margin: 0; padding: 0; }
+.dishes li { border-top: 1.5px solid var(--paper-line); }
+.dishes li:first-child { border-top: 0; }
+.dish { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 0; min-height: 56px; text-align: left; }
+.dish .nm { flex: 1; }
+.dish .nm .zh { display: block; font-size: 20px; font-weight: 600; }
+.dish .nm span:last-child { font-size: 16px; }
+.tag { flex: none; font-size: 14px; font-weight: 700; border-radius: 99px; padding: 3px 10px; white-space: nowrap; }
+.tag.two { background: var(--paper-ink); color: var(--paper); }
+.tag.one { box-shadow: inset 0 0 0 1.5px var(--paper-mute); color: var(--paper-mute); }
+.dish .go { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.single .dish { color: var(--paper-mute); }
+.unconf { margin: 22px 0 0; padding: 12px 14px; border-radius: 16px; background: #ECE7DC; font-size: 16px; }
+.srcs { font-size: 16px; color: var(--paper-mute); margin: 14px 0 0; }
+.sh-actions { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 16px calc(12px + var(--safe-b)); background: var(--paper); box-shadow: 0 -1px 0 var(--paper-line); }
+.btn { min-height: 56px; border-radius: 99px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 16px; font-weight: 800; font-size: 17px; text-decoration: none; text-align: center; line-height: 1.15; transition: transform .3s var(--spring); }
+.btn:active { transform: scale(.95); }
+.btn.pri { background: var(--paper-ink); color: var(--lime); }
+.btn.sec2 { box-shadow: inset 0 0 0 2px var(--paper-ink); color: var(--paper-ink); }
+.btn.lime { background: var(--lime); color: var(--lime-ink); }
+.btn[aria-disabled="true"] { opacity: .62; }
+
+/* ask sheet: a shorter sheet on top */
+.ask .sheet { top: auto; height: auto; max-height: 82%; bottom: 0; }
+.ask-head { padding: 8px 18px 4px; }
+.ask-head .handle { background: var(--paper-ink); }
+.ask-head h2 { margin: 2px 0 0; font-weight: 800; font-stretch: 75%; font-size: 30px; line-height: 1; }
+.ask-head p { margin: 4px 0 0; font-size: 16px; color: var(--paper-mute); }
+.seg { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 18px 4px; }
+.seg button { min-height: 44px; padding: 0 14px; border-radius: 99px; font-weight: 700; font-size: 16px; box-shadow: inset 0 0 0 2px var(--paper-ink); transition: transform .25s var(--spring); }
+.seg button[aria-pressed="true"] { background: var(--paper-ink); color: var(--paper); }
+.seg button:active { transform: scale(.94); }
+.answer { padding: 8px 18px calc(20px + var(--safe-b)); overflow-y: auto; }
+.answer .q { font-weight: 800; font-size: 19px; margin: 6px 0 6px; }
+.answer p { margin: 0 0 10px; }
+.answer dl { margin: 0; }
+.answer dt { font-weight: 800; margin-top: 8px; }
+.answer dd { margin: 0; }
+.from { font-size: 16px; color: var(--paper-mute); }
+
+/* driver plate overlay */
+.driver { position: absolute; inset: 0; background: #000; color: #fff; display: flex; flex-direction: column; justify-content: center; padding: 24px 20px calc(24px + var(--safe-b)); width: min(100%, 430px); left: 50%; margin-left: max(-215px, -50%); }
+.driver .zh { font-size: clamp(34px, 11vw, 46px); line-height: 1.3; font-weight: 700; }
+.driver p { margin: 0 0 14px; }
+.driver .x { position: absolute; top: calc(12px + var(--safe-t)); right: 12px; }
+
+/* ---------- pushed pages: order, shortlist ---------- */
+.page {
+  position: absolute; inset: 0; width: min(100%, 430px); left: 50%; margin-left: max(-215px, -50%);
+  background: var(--bg); color: var(--ink); display: flex; flex-direction: column; transform: translateX(100%);
+}
+.page.anim { transition: transform .45s var(--ease); }
+.page.in { transform: none; }
+.pg-top { flex: none; display: flex; align-items: center; gap: 8px; padding: calc(8px + var(--safe-t)) 10px 8px; min-height: 60px; }
+.pg-top h1 { margin: 0; flex: 1; font-weight: 800; font-stretch: 75%; font-size: 28px; line-height: 1; }
+.nav-back { min-width: 44px; min-height: 44px; display: grid; place-items: center; border-radius: 99px; }
+.pg-body { flex: 1 1 auto; overflow-y: auto; padding: 4px 16px 24px; overscroll-behavior: contain; }
+.pg-cta { flex: none; padding: 10px 16px calc(12px + var(--safe-b)); }
+.o-rest { display: flex; align-items: center; gap: 12px; background: var(--c); color: var(--k); border-radius: 22px; padding: 10px 14px; }
+.o-rest svg { width: 64px; height: 52px; flex: none; }
+.o-rest b { font-stretch: 75%; font-weight: 800; font-size: 22px; line-height: 1; display: block; }
+.stepper { display: flex; align-items: center; justify-content: space-between; margin: 18px 0 0; padding: 12px 12px 12px 16px; border-radius: 22px; background: var(--bg2); }
+.stepper .lbl { font-weight: 700; font-size: 18px; }
+.stepper .ctl { display: flex; align-items: center; gap: 6px; }
+.stepper button { width: 52px; height: 52px; border-radius: 99px; background: var(--bg3); display: grid; place-items: center; transition: transform .25s var(--spring); }
+.stepper button:active { transform: scale(.88); }
+.stepper output { min-width: 52px; text-align: center; font-weight: 800; font-stretch: 75%; font-size: 46px; line-height: 1; }
+.stepper output.pop { animation: bump .4s var(--spring); }
+.togs { margin: 10px 0 0; padding: 6px 0; border-radius: 22px; background: var(--bg2); }
+.togs p { margin: 6px 16px 2px; font-weight: 700; font-size: 18px; }
+.tog { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 0 16px; font-size: 17px; font-weight: 600; text-align: left; }
+.sw { width: 52px; height: 32px; border-radius: 99px; background: var(--bg3); position: relative; flex: none; transition: background .2s; box-shadow: inset 0 0 0 1.5px var(--line); }
+.sw::after { content: ""; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 99px; background: var(--ink); transition: transform .35s var(--spring); }
+.tog[aria-checked="true"] .sw { background: var(--lime); }
+.tog[aria-checked="true"] .sw::after { transform: translateX(20px); background: var(--lime-ink); }
+.pg-body .demo { padding: 10px 2px 0; }
+.out { margin: 18px 0 0; }
+.out .o-h { color: var(--mute); margin-top: 18px; }
+.olist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.olist li { background: var(--paper); color: var(--paper-ink); border-radius: 20px; padding: 12px 14px; }
+.olist li.enter { animation: rise .45s var(--spring) both; }
+@keyframes rise { from { transform: translateY(14px) scale(.97); opacity: 0; } to { transform: none; opacity: 1; } }
+.olist .zh { font-size: 26px; font-weight: 700; }
+.olist .qz { font-size: 22px; font-weight: 700; margin-left: 8px; }
+.olist .en { display: block; font-weight: 700; }
+.olist p { margin: 4px 0 0; font-size: 16px; color: var(--paper-mute); }
+.olist .warn { margin-top: 8px; color: var(--warn-ink); }
+.outlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.meta { color: var(--mute); font-size: 16px; margin: 12px 0 0; }
+.slist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.slist li { display: flex; align-items: stretch; gap: 0; border-radius: 22px; overflow: hidden; background: var(--c); color: var(--k); }
+.slist a { flex: 1; display: flex; align-items: center; gap: 12px; padding: 12px 14px; text-decoration: none; min-height: 84px; }
+.slist a svg { width: 70px; height: 56px; flex: none; }
+.slist b { display: block; font-weight: 800; font-stretch: 75%; font-size: 24px; line-height: 1; }
+.slist button { flex: none; width: 56px; display: grid; place-items: center; }
+.empty { margin: 40px 0; text-align: center; color: var(--mute); }
+.empty b { display: block; color: var(--ink); font-stretch: 75%; font-size: 30px; line-height: 1.05; margin-bottom: 8px; }
+
+/* ---------- staff card ---------- */
+.cardpage { position: absolute; inset: 0; width: min(100%, 430px); left: 50%; margin-left: max(-215px, -50%); background: #fff; color: #000; display: flex; flex-direction: column; }
+.cp-top { flex: none; display: flex; align-items: center; gap: 8px; padding: calc(4px + var(--safe-t)) 8px 0 4px; min-height: 48px; }
+.cp-top .nav-back { color: #000; }
+.cp-for { flex: 1; font-size: 15px; font-weight: 700; line-height: 1.2; }
+.cp-top .proto { color: #3D3A35; border-color: #BDB7AC; font-size: 13px; }
+.flip { position: relative; flex: 1 1 auto; min-height: 0; }
+.face { position: absolute; inset: 0; padding: 4px 20px 8px; overflow-y: auto; }
+.f-g { font-size: min(22px, 3.3vh); font-weight: 600; margin: 0 0 1.2vh; }
+.f-ord { list-style: none; margin: 0 0 1.4vh; padding: 1vh 0; border-top: 3px solid #000; border-bottom: 3px solid #000; }
+.f-ord li { font-size: min(32px, 4.6vh); font-weight: 800; line-height: 1.25; }
+.f-ord li b { margin-left: .4em; }
+.f-st { font-size: min(32px, 4.7vh); font-weight: 800; line-height: 1.25; margin: 0 0 1vh; }
+.f-s2 { font-size: min(21px, 3.15vh); font-weight: 500; line-height: 1.45; margin: 0 0 .8vh; }
+.f-cl { font-size: min(24px, 3.5vh); font-weight: 700; margin: 1vh 0 0; }
+.face.back h2 { font-weight: 800; font-stretch: 75%; font-size: 30px; line-height: 1; margin: 4px 0 10px; }
+.face.back p, .face.back li { font-size: 17px; line-height: 1.4; }
+.face.back ol { padding-left: 1.2em; margin: 0 0 10px; }
+.face.back .warn { margin: 12px 0 0; }
+.cp-bot { flex: none; display: flex; gap: 10px; align-items: center; padding: 8px 16px calc(10px + var(--safe-b)); }
+.cp-bot .btn { flex: 1; background: #000; color: #fff; min-height: 52px; }
+.cp-dots { display: flex; gap: 4px; }
+.cp-dots a { min-width: 44px; min-height: 44px; display: grid; place-items: center; border-radius: 99px; font-weight: 800; text-decoration: none; box-shadow: inset 0 0 0 2px #000; }
+.cp-dots a[aria-current="true"] { background: #000; color: #fff; }
+
+@media (max-height: 720px) {
+  .dline-card { display: none; }
+  .dc-emblem svg { max-height: 120px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <div class="screen" id="discover"></div>
+  <div class="layer" id="L-page" hidden></div>
+  <div class="layer" id="L-sheet" hidden></div>
+  <div class="layer ask" id="L-ask" hidden></div>
+  <div class="layer" id="L-top" hidden></div>
+  <nav class="pillbar" id="pillbar" aria-label="Main"></nav>
+</div>
+<script src="data.js"></script>
+<script>
+(function () {
+'use strict';
+/* ---------- core rules (a short re-implementation of form-test/proto.js; data only from data.js) ---------- */
+var P = window.PROTO;
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function zh(t, cls) { return '<span class="zh' + (cls ? ' ' + cls : '') + '" lang="zh-Hans">' + esc(t) + '</span>'; }
+function byId(id) { for (var i = 0; i < P.restaurants.length; i++) if (P.restaurants[i].id === id) return P.restaurants[i]; return null; }
+var PRICE = { budget: '¥ Budget', mid: '¥¥ Mid' };
+var CUISINE = { duck: 'Peking duck', noodles: 'Noodles', dumplings: 'Dumplings', hotpot: 'Hotpot', snacks: 'Breakfast & snacks' };
+var ALG = { peanut: 'peanut', tree_nut: 'tree nuts', sesame: 'sesame', gluten: 'gluten', soy: 'soy', shellfish: 'shellfish', fish: 'fish', egg: 'egg', dairy: 'dairy' };
+var DIETNOTE = { pork: 'contains pork', high_fat: 'rich and fatty', organ_meat: 'organ meat', msg_common: 'MSG common' };
+var DIVERGE = { fermented_or_pungent: 'strong smell, fermented', texture: 'unfamiliar texture' };
+var FIRST = { crowd_pleaser: 'a crowd pleaser', approachable: 'approachable', adventurous: 'adventurous', challenging: 'challenging' };
+var PRESENCE = { always: 'always', common: 'common', varies: 'sometimes' };
+var PREFILL = 'Two of us staying near the Forbidden City, one doesn’t eat pork. We want Peking duck or noodles, mid-range.';
+
+var OPTS = [
+  { k: 'diet', v: 'no-pork', label: 'No pork' },
+  { k: 'diet', v: 'peanut', label: 'Peanut allergy' },
+  { k: 'diet', v: 'sesame', label: 'Sesame allergy' },
+  { k: 'area', v: 'fc', label: 'Near the Forbidden City' },
+  { k: 'area', v: 'dongcheng', label: 'Dongcheng' },
+  { k: 'area', v: 'xicheng', label: 'Xicheng' },
+  { k: 'area', v: 'chaoyang', label: 'Chaoyang' },
+  { k: 'cuisine', v: 'duck', label: 'Peking duck' },
+  { k: 'cuisine', v: 'noodles', label: 'Noodles' },
+  { k: 'cuisine', v: 'dumplings', label: 'Dumplings' },
+  { k: 'cuisine', v: 'hotpot', label: 'Hotpot' },
+  { k: 'cuisine', v: 'snacks', label: 'Breakfast & snacks' },
+  { k: 'price', v: 'budget', label: '¥ Budget' },
+  { k: 'price', v: 'mid', label: '¥¥ Mid' }
+];
+var OPT = {};
+OPTS.forEach(function (o) { OPT[o.v] = o; });
+var GROUP_LABEL = { diet: 'Can’t eat', area: 'Area', cuisine: 'Food', price: 'Price' };
+
+var RULES = [
+  [/\bpork\b|\bpig\b|halal|muslim|清真/, 'no-pork'],
+  [/peanut/, 'peanut'],
+  [/sesame/, 'sesame'],
+  [/forbidden city|palace|gugong|故宫|tiananmen/, 'fc'],
+  [/dongcheng|东城/, 'dongcheng'],
+  [/xicheng|西城/, 'xicheng'],
+  [/chaoyang|sanlitun|朝阳/, 'chaoyang'],
+  [/\bduck\b|peking|kaoya|烤鸭/, 'duck'],
+  [/noodle|\bmian\b|面/, 'noodles'],
+  [/dumpling|jiaozi|饺子/, 'dumplings'],
+  [/hot ?pot|mutton|lamb|火锅/, 'hotpot'],
+  [/breakfast|snack|douzhi/, 'snacks'],
+  [/\bmid\b|mid-range|moderate|not too expensive/, 'mid'],
+  [/cheap|inexpensive|\bbudget\b/, 'budget']
+];
+var NUM = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
+function parseSentence(s) {
+  var t = String(s || '').toLowerCase().replace(/’/g, "'");
+  var chips = [], hits = [];
+  RULES.forEach(function (rule) {
+    var m = t.match(rule[0]);
+    if (!m) return;
+    if (rule[1] === 'budget' && /mid[ -]budget/.test(t)) return;
+    if (chips.indexOf(rule[1]) < 0) { chips.push(rule[1]); hits.push([m[0], OPT[rule[1]].label]); }
+  });
+  var party = null;
+  var pm = t.match(/\b(one|two|three|four|five|six|[1-6])\b (of us|people|adults|friends)/);
+  if (pm) party = NUM[pm[1]] || Number(pm[1]);
+  else if (/\b(just me|solo|alone|by myself)\b/.test(t)) party = 1;
+  return { chips: chips, party: party, hits: hits };
+}
+function groups(chips) {
+  var g = { diet: [], area: [], cuisine: [], price: [] };
+  chips.forEach(function (v) { if (OPT[v]) g[OPT[v].k].push(v); });
+  return g;
+}
+function splitName(n) {
+  var i = n.indexOf(' (');
+  return i < 0 ? { main: n, sub: '' } : { main: n.slice(0, i), sub: n.slice(i + 2, n.length - 1) };
+}
+function shortDish(d) { return d.nameEn.replace(/ \(.*\)$/, ''); }
+function verifiedDishes(r) { return r.dishes.filter(function (d) { return d.verified; }); }
+function singleDishes(r) { return r.dishes.filter(function (d) { return !d.verified; }); }
+function libDishes(r) { return r.dishes.filter(function (d) { return d.verified && d.slug && P.dishes[d.slug]; }); }
+function hasPork(d) {
+  if (d.slug && P.dishes[d.slug]) return P.dishes[d.slug].dietaryNotes.indexOf('pork') >= 0;
+  return d.nameZh.indexOf('猪肉') >= 0;
+}
+function allergenOf(slug, a) {
+  return (P.dishes[slug].allergens.filter(function (x) { return x.allergen === a; })[0]) || null;
+}
+function listJoin(a) { return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
+var UNCONFIRMED = [['hours', 'hours'], ['priceBand', 'price band'], ['spendPerHead', 'spend per head'], ['ordering', 'how to order'], ['payment', 'payment'], ['englishMenu', 'English menu']];
+function notConfirmed(r) {
+  return UNCONFIRMED.filter(function (f) { return r[f[0]] == null; }).map(function (f) { return f[1]; });
+}
+function fmtDate(iso) {
+  if (!iso) return 'undated';
+  var m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var p = iso.split('-');
+  return Number(p[2]) + ' ' + m[Number(p[1]) - 1] + ' ' + p[0];
+}
+function sourceNames(r) { return r.sources.map(function (s) { return s.name; }); }
+
+/* one line per dietary need, conditional wording only */
+function dietLine(r, v) {
+  var ver = verifiedDishes(r), lib = libDishes(r);
+  var noLib = ver.filter(function (d) { return !d.slug; });
+  if (v === 'no-pork') {
+    if (r.halalSignage === true) return { tone: 'cue', text: zh('清真') + ' (halal) is in the shop name: a strong cue, not a certification. The no-pork card still applies.' };
+    if (r.onlyDishPork) return { tone: 'clash', text: 'Its only dish is pork-based, and none of our sources mentions a pork-free version.' };
+    var pork = ver.filter(hasPork);
+    if (pork.length) return { tone: 'ask', text: esc(listJoin(pork.map(shortDish))) + ' typically contains pork; fillings vary, so ask about each one.' };
+    if (noLib.length) return { tone: 'ask', text: 'Some dishes here have no dish notes yet, so pork cannot be ruled out. Ask with the card.' };
+    return { tone: 'ask', text: 'Our dish notes list no pork in ' + esc(listJoin(lib.map(shortDish))) + '. Kitchens vary, so ask with the card.' };
+  }
+  var name = ALG[v];
+  var hit = [];
+  lib.forEach(function (d) { var x = allergenOf(d.slug, v); if (x) hit.push([d, x]); });
+  var desc = noLib.filter(function (d) { return new RegExp(v, 'i').test(d.note || '') || new RegExp(v, 'i').test(d.nameEn); });
+  if (hit.some(function (h) { return h[1].presence === 'always'; })) return { tone: 'clash', text: esc(cap(name)) + ' is always in the typical preparation of ' + esc(listJoin(hit.map(function (h) { return shortDish(h[0]); }))) + '.' };
+  if (desc.length) return { tone: 'clash', text: esc(listJoin(desc.map(shortDish))) + ' carries ' + esc(name) + ', per the source description. Ask about the rest.' };
+  if (hit.length) return { tone: 'ask', text: esc(cap(name)) + ' can appear in ' + esc(listJoin(hit.map(function (h) { return shortDish(h[0]); }))) + ' (' + esc(PRESENCE[hit[0][1].presence]) + ', typical preparation). Ask with the card.' };
+  if (lib.length && !noLib.length) return { tone: 'ask', text: esc(cap(name)) + ' is not in our typical-preparation notes for ' + esc(listJoin(lib.map(shortDish))) + '. Confirm with the card.' };
+  if (lib.length) return { tone: 'ask', text: esc(cap(name)) + ' is not in our notes for ' + esc(listJoin(lib.map(shortDish))) + '; other dishes have no notes. Ask with the card.' };
+  return { tone: 'ask', text: 'No allergen notes on file for these dishes. Ask with the card.' };
+}
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function evaluate(r, chips) {
+  var g = groups(chips);
+  var e = { fits: [], misses: [], unknown: [], diet: [], clash: false, score: 0 };
+  if (g.area.length) {
+    var a = g.area.filter(function (v) { return v === 'fc' ? r.nearForbiddenCity === true : r.district === v; });
+    if (a.length) { e.fits.push(OPT[a[0]].label); e.score += 1; } else e.misses.push(g.area.map(function (v) { return OPT[v].label; }).join(' or '));
+  }
+  if (g.cuisine.length) {
+    var c = g.cuisine.filter(function (v) { return r.cuisines.indexOf(v) >= 0; });
+    if (c.length) { e.fits.push(OPT[c[0]].label); e.score += 2; } else e.misses.push(g.cuisine.map(function (v) { return OPT[v].label; }).join(' or '));
+  }
+  if (g.price.length) {
+    if (!r.priceBand) e.unknown.push('Price band not confirmed');
+    else if (g.price.indexOf(r.priceBand) >= 0) { e.fits.push(PRICE[r.priceBand]); e.score += 1; }
+    else e.misses.push(g.price.map(function (v) { return OPT[v].label; }).join(' or '));
+  }
+  g.diet.forEach(function (v) {
+    var l = dietLine(r, v); l.label = OPT[v].label; l.v = v;
+    e.diet.push(l);
+    if (l.tone === 'clash') { e.clash = true; e.score -= 3; }
+  });
+  e.full = chips.length > 0 && !e.misses.length && !e.clash && !e.unknown.length;
+  return e;
+}
+function ranked(chips) {
+  return P.restaurants.map(function (r, i) { return { r: r, e: evaluate(r, chips), i: i }; })
+    .sort(function (a, b) { return (b.e.score - a.e.score) || (a.i - b.i); });
+}
+
+/* Build my order: only verified dishes from this restaurant; quantities only where the dish notes give one */
+function quantity(d, party) {
+  if (d.slug === 'peking-duck') {
+    if (party <= 3) return { zh: '半只', en: 'Half a duck (半只). The dish notes say proper roast duck houses sell half ducks to small groups.' };
+    return { zh: '', en: 'Our notes only cover half ducks for small groups; ask staff how much to order for ' + party + '.' };
+  }
+  if (d.slug === 'jiaozi') return { zh: (2 * party) + '–' + (3 * party) + '两', en: 'About ' + (2 * party) + ' to ' + (3 * party) + ' liang (两) for ' + party + '. The dish notes say a normal solo order is two or three liang.' };
+  return { zh: '', en: 'Portion size is not in our notes; staff can advise.' };
+}
+function buildOrder(r, party, diet) {
+  var order = [], ask = [], out = [];
+  verifiedDishes(r).forEach(function (d) {
+    var lib = d.slug ? P.dishes[d.slug] : null;
+    var exclude = null, askFirst = null;
+    if (diet.indexOf('no-pork') >= 0) {
+      if (r.onlyDishPork && lib && lib.dietaryNotes.indexOf('pork') >= 0) exclude = 'Pork-based sauce; none of our sources mentions a pork-free version.';
+      else if (lib && lib.dietaryNotes.indexOf('pork') >= 0) askFirst = 'Typically contains pork. Fillings vary, so ask for a non-pork one.';
+      else if (!lib && hasPork(d)) exclude = 'Pork in the name (猪肉).';
+      else if (!lib) askFirst = 'No dish notes on file, so pork cannot be ruled out. Ask.';
+    }
+    ['peanut', 'sesame'].forEach(function (a) {
+      if (diet.indexOf(a) < 0) return;
+      if (lib) {
+        var x = allergenOf(d.slug, a);
+        if (x && x.presence === 'always') exclude = exclude || cap(ALG[a]) + ' is always in the typical preparation.';
+        else if (x) askFirst = askFirst || cap(ALG[a]) + ' ' + (x.presence === 'varies' ? 'sometimes appears' : 'is common') + ': ' + x.note;
+      } else if (new RegExp(a, 'i').test(d.note || '')) exclude = exclude || cap(ALG[a]) + ', per the source description.';
+      else askFirst = askFirst || 'No allergen notes on file for this dish. Ask with the card.';
+    });
+    var typical = lib ? lib.allergens.filter(function (x) { return diet.indexOf(x.allergen) < 0; }).map(function (x) { return ALG[x.allergen] + ' (' + PRESENCE[x.presence] + ')'; }) : [];
+    var item = { d: d, lib: lib, qty: quantity(d, party), typical: typical, why: askFirst };
+    if (exclude) out.push({ d: d, why: exclude });
+    else if (askFirst) ask.push(item);
+    else order.push(item);
+  });
+  return { order: order, ask: ask, out: out, single: singleDishes(r), cards: diet.filter(function (x) { return P.cards[x]; }), party: party };
+}
+function cardModel(o, cardId) {
+  var items = o.order.concat(o.ask);
+  var c = cardId ? P.cards[cardId] : null;
+  var zhLines = [], enLines = [];
+  return {
+    greeting: P.cardGreeting,
+    closing: P.cardClosing,
+    items: items.map(function (it) { return { zh: it.d.nameZh, qzh: it.qty.zh, en: it.d.nameEn, qen: it.qty.zh ? it.qty.en : '' }; }),
+    card: c,
+    body: c ? [c.statement, c.avoid, c.crossContact, c.askAlternative] : []
+  };
+}
+
+/* Ask about this dish: answers come only from PROTO.dishes[slug] */
+var ASK_TOPICS = [['what', 'What is it?'], ['how', 'How do I eat it?'], ['allergens', 'Allergens?'], ['spice', 'Is it spicy?']];
+function sentences(text) { return (text.match(/[^.!?]+[.!?]+/g) || [text]).map(function (s) { return s.trim(); }); }
+function askAnswer(slug, topic) {
+  var d = P.dishes[slug];
+  var a = { q: '', paras: [], items: [], caution: '' };
+  var body = sentences(d.body.join(' '));
+  if (topic === 'what') {
+    a.q = 'What is it?';
+    a.paras = body.slice(0, 2);
+    if (d.firstTimer) a.items.push({ label: 'For a first try', text: 'Our dish notes call it ' + FIRST[d.firstTimer] + '.' });
+  } else if (topic === 'how') {
+    a.q = 'How do I eat it?';
+    a.paras = [d.howToEat];
+  } else if (topic === 'allergens') {
+    a.q = 'What allergens does it have?';
+    a.items = d.allergens.map(function (x) { return { label: cap(ALG[x.allergen]) + ', ' + PRESENCE[x.presence], text: x.note }; });
+    d.dietaryNotes.forEach(function (n) { a.items.push({ label: 'Also', text: cap(DIETNOTE[n] || n) + '.' }); });
+    a.caution = 'This describes the typical preparation, not this kitchen. Ask staff to confirm; the card asks in Chinese.';
+  } else {
+    a.q = 'Is it spicy?';
+    a.paras = [d.spiceLevel === 0 ? 'Our dish notes mark the typical preparation as not spicy.' : 'Our dish notes give the typical preparation some heat.'];
+    sentences(d.howToEat).concat(body).filter(function (s) { return /spic|chil/i.test(s); }).forEach(function (s) { a.paras.push(s); });
+    d.divergence.forEach(function (n) { a.items.push({ label: 'Heads up', text: cap(DIVERGE[n] || n) + '.' }); });
+    d.cautiousAlternatives.forEach(function (s) { if (P.dishes[s]) a.items.push({ label: 'Gentler option', text: P.dishes[s].nameEn + ' (' + P.dishes[s].nameZh + ')' }); });
+  }
+  return a;
+}
+function parseHash() {
+  var h = (location.hash || '#/').slice(1);
+  var qi = h.indexOf('?');
+  var path = qi < 0 ? h : h.slice(0, qi);
+  var q = {};
+  if (qi >= 0) h.slice(qi + 1).split('&').forEach(function (kv) { var p = kv.split('='); if (p[0]) q[p[0]] = decodeURIComponent(p[1] || ''); });
+  return { parts: path.split('/').filter(Boolean), q: q };
+}
+var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* ---------- end core ---------- */
+
+
+/* ---------- look: one flat colour field and one emblem per restaurant ---------- */
+var LOOK = {
+  'siji-minfu-gugong': { c: '#E5482C', k: '#170805', hi: '#FFD7C4', emb: 'duck' },
+  'pang-mei-noodles': { c: '#F2B53A', k: '#1C1305', hi: '#C8301B', emb: 'chili' },
+  'man-heng-ji': { c: '#1E6A5B', k: '#F6F1E7', hi: '#E9A25F', emb: 'hotpot' },
+  'bao-yuan': { c: '#6A4ACB', k: '#FBF8FF', hi: '#F6B9CD', emb: 'dumplings' },
+  'huguosi-snacks': { c: '#C3D3A9', k: '#141A0C', hi: '#7D9163', emb: 'douzhi' },
+  'no69-fangzhuanchang': { c: '#3A2A1F', k: '#F6EFE4', hi: '#9BCB58', emb: 'zhajiang' }
+};
+function lk(r) { return LOOK[r.id] || { c: '#333', k: '#fff', hi: '#999', emb: 'zhajiang' }; }
+function vars(r) { var l = lk(r); return '--c:' + l.c + ';--k:' + l.k + ';--hi:' + l.hi; }
+
+var BOWL = '<path fill="currentColor" d="M26 110h188c-2 40-38 66-94 66S28 150 26 110z"/><rect x="90" y="172" width="60" height="11" rx="5.5" fill="currentColor"/><path d="M48 132c34 12 110 12 144 0" fill="none" stroke="var(--c)" stroke-width="5" stroke-linecap="round"/>';
+var NOODLES = '<g fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"><path d="M50 104c10-18 26-18 36 0s26 18 36 0 26-18 36 0 22 14 32 0"/><path d="M62 90c10-16 24-16 34 0s24 16 34 0 24-16 34 0"/></g>';
+var EMB = {
+  duck: '<rect x="16" y="162" width="208" height="12" rx="6" fill="currentColor"/>' +
+    '<path fill="currentColor" d="M30 124C28 92 62 70 108 72c44 2 76 18 88 42 10 22-6 40-36 46-40 8-96 6-116-10-8-7-14-16-14-26z"/>' +
+    '<path fill="currentColor" d="M164 102c4-26 2-48 10-62 8-14 28-16 36-4 6 9 2 20-8 22-8 1-12 8-12 20 0 14-2 26-8 36z"/>' +
+    '<path fill="currentColor" d="M208 38l26 8-26 8z"/><circle cx="196" cy="40" r="4.5" fill="var(--hi)"/>' +
+    '<g fill="none" stroke="var(--hi)" stroke-linecap="round"><path d="M64 97c22-12 54-12 78-2" stroke-width="7"/><path d="M56 117c14-7 30-9 44-7" stroke-width="5"/><path d="M150 132c8-4 16-10 20-18" stroke-width="5"/></g>',
+  zhajiang: '<path d="M152 12L100 110M180 18L118 112" stroke="currentColor" stroke-width="9" stroke-linecap="round"/>' + NOODLES +
+    '<path fill="currentColor" d="M94 82c2-17 46-19 52-2 4 10-8 15-27 15s-27-3-25-13z"/><path d="M107 79c7-4 17-5 25-3" stroke="var(--c)" stroke-width="4" stroke-linecap="round" fill="none"/>' +
+    '<g stroke="var(--hi)" stroke-width="7" stroke-linecap="round"><path d="M58 76l18 8M156 72l20-6M168 88l18 3M44 96l14 2"/></g>' + BOWL,
+  chili: '<g fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"><path d="M58 70c-9-11 9-17 0-30"/><path d="M84 66c-9-11 9-17 0-30"/></g>' + NOODLES +
+    '<path fill="var(--hi)" d="M122 40c28-12 62-2 80 26 8 12 10 26 4 34-10-20-36-38-66-42-15-2-25-12-18-18z"/><path d="M124 42c-7-8-9-18-3-26" stroke="currentColor" stroke-width="7" stroke-linecap="round" fill="none"/>' + BOWL,
+  hotpot: '<g fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"><path d="M110 28c-7-8 7-12 0-22"/><path d="M132 28c-7-8 7-12 0-22"/></g>' +
+    '<rect x="94" y="34" width="52" height="12" rx="6" fill="currentColor"/><path fill="var(--hi)" d="M102 44h36l5 50h-46z"/>' +
+    '<path fill="var(--hi)" d="M30 96h180c-4 38-40 60-90 60S34 134 30 96z"/><rect x="20" y="86" width="200" height="14" rx="7" fill="currentColor"/>' +
+    '<path d="M46 120c40 10 108 10 148 0" stroke="var(--c)" stroke-width="5" fill="none" stroke-linecap="round"/>' +
+    '<g fill="none" stroke="currentColor" stroke-width="7"><circle cx="22" cy="118" r="12"/><circle cx="218" cy="118" r="12"/></g>' +
+    '<path fill="currentColor" d="M80 152h80l12 28H68z"/><g fill="var(--c)"><rect x="92" y="161" width="10" height="12" rx="3"/><rect x="115" y="161" width="10" height="12" rx="3"/><rect x="138" y="161" width="10" height="12" rx="3"/></g>' +
+    '<g fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"><path d="M44 84c8-12 22-12 30 0"/><path d="M166 84c8-12 22-12 30 0"/></g>',
+  dumplings: '<rect x="18" y="166" width="204" height="10" rx="5" fill="currentColor"/>' +
+    dump(68, 96, -12, 'var(--hi)') + dump(172, 96, 12, '#BFE29A') + dump(120, 134, 0, 'currentColor'),
+  douzhi: '<g fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"><path d="M70 66c-10-12 10-18 0-32"/><path d="M100 62c-10-12 10-18 0-32"/><path d="M130 66c-10-12 10-18 0-32"/></g>' +
+    '<path fill="currentColor" d="M24 92h150c-2 40-30 64-75 64S26 132 24 92z"/><ellipse cx="99" cy="92" rx="75" ry="12" fill="var(--hi)" stroke="currentColor" stroke-width="6"/>' +
+    '<rect x="72" y="152" width="54" height="10" rx="5" fill="currentColor"/><rect x="12" y="166" width="216" height="8" rx="4" fill="currentColor"/>' +
+    '<circle cx="190" cy="128" r="29" fill="none" stroke="currentColor" stroke-width="18"/><circle cx="190" cy="128" r="29" fill="none" stroke="var(--hi)" stroke-width="4" stroke-dasharray="5 9"/>'
+};
+function dump(x, y, rot, fill) {
+  return '<g transform="translate(' + x + ' ' + y + ') rotate(' + rot + ')"><path fill="' + fill + '" d="M-58 20C-58-12-30-34 0-34S58-12 58 20C38 32-38 32-58 20Z"/>' +
+    '<path d="M-28-24c4 10 4 20 2 30M0-32v30M28-24c-4 10-4 20-2 30" fill="none" stroke="var(--c)" stroke-width="5" stroke-linecap="round"/></g>';
+}
+function emblem(r, cls) {
+  return '<svg class="' + (cls || '') + '" viewBox="0 0 240 190" aria-hidden="true" focusable="false">' + EMB[lk(r).emb] + '</svg>';
+}
+var IC = {
+  x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  up: '<path d="M12 19V5M6 11l6-6 6 6"/>',
+  back: '<path d="M15 5l-7 7 7 7"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  minus: '<path d="M5 12h14"/>',
+  pen: '<path d="M4 20l4-1 11-11-3-3L5 16z"/>',
+  deck: '<rect x="4" y="6" width="12" height="15" rx="3"/><path d="M9 3h8a3 3 0 0 1 3 3v11"/>',
+  mark: '<path d="M7 4h10v16l-5-4-5 4z"/>',
+  card: '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 10h10M7 14h6"/>',
+  warn: '<path d="M12 3l9.5 17h-19z"/><path d="M12 10v4.5M12 17.4v.1"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.1"/>',
+  q: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17.4v.1"/>',
+  flip: '<path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/>',
+  car: '<path d="M4 16v-4l2-5h12l2 5v4z"/><circle cx="8" cy="16.5" r="1.6"/><circle cx="16" cy="16.5" r="1.6"/>',
+  expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+  dash: '<path d="M7 12h10"/>'
+};
+function ic(n, extra) { return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" focusable="false"' + (extra || '') + '>' + IC[n] + '</svg>'; }
+var BRAND_MARK = '<svg class="brand-mark" viewBox="0 0 30 30" aria-hidden="true"><rect x="9" y="3" width="17" height="22" rx="4" fill="#E5482C" transform="rotate(12 17 14)"/><rect x="5" y="5" width="17" height="22" rx="4" fill="#F2B53A" transform="rotate(-4 13 16)"/><rect x="4" y="6" width="17" height="22" rx="4" fill="#C8F03C" transform="rotate(-14 12 17)"/></svg>';
+
+/* ---------- state ---------- */
+var first = parseSentence(PREFILL);
+var S = { said: PREFILL, chips: first.chips.slice(), party: first.party || 2, submitted: false, deck: [], kept: [], diet: null, last: null, sig: '' };
+try { var saved = JSON.parse(localStorage.getItem('v6-kept') || '[]'); if (Array.isArray(saved)) S.kept = saved.filter(byId); } catch (e) {}
+function saveKept() { try { localStorage.setItem('v6-kept', JSON.stringify(S.kept)); } catch (e) {} }
+function chipDiet() { return groups(S.chips).diet; }
+function curDiet() { return S.diet || chipDiet(); }
+function rerank() { S.deck = ranked(S.chips).map(function (x) { return x.r.id; }).filter(function (id) { return S.kept.indexOf(id) < 0; }); }
+rerank();
+function discoverHash() { return S.submitted ? '#/?chips=' + S.chips.join(',') + '&n=' + S.party : '#/'; }
+function orderHash(id) { return '#/order/' + id + '?n=' + S.party + '&diet=' + curDiet().join(','); }
+function cardHash(id, i) { return '#/card/' + id + '?n=' + S.party + '&diet=' + curDiet().join(',') + (i ? '&c=' + i : ''); }
+function clampParty(n) { n = Math.round(Number(n) || 2); return Math.max(1, Math.min(8, n)); }
+
+var phone = document.getElementById('phone');
+var $discover = document.getElementById('discover');
+var L = { page: document.getElementById('L-page'), sheet: document.getElementById('L-sheet'), ask: document.getElementById('L-ask'), top: document.getElementById('L-top') };
+var $pill = document.getElementById('pillbar');
+
+/* ---------- discover ---------- */
+function fitsHtml(e) {
+  return '<ul class="fits">' +
+    e.fits.map(function (f) { return '<li class="y">' + ic('check') + esc(f) + '</li>'; }).join('') +
+    e.misses.map(function (f) { return '<li class="n" aria-label="Does not match: ' + esc(f) + '">' + ic('x') + esc(f) + '</li>'; }).join('') +
+    e.unknown.map(function (f) { return '<li class="u">' + ic('dash') + esc(f) + '</li>'; }).join('') + '</ul>';
+}
+function dietHtml(e, cls) {
+  return e.diet.map(function (d) {
+    return '<p class="dline ' + d.tone + ' ' + (cls || '') + '">' + ic(d.tone === 'clash' ? 'warn' : 'info') + '<span><b>' + esc(d.label) + ':</b> ' + d.text + '</span></p>';
+  }).join('');
+}
+function cardHtml(r, e) {
+  var n = splitName(r.nameEn);
+  return '<article class="dcard hide" data-id="' + r.id + '" style="' + vars(r) + '" tabindex="-1" aria-label="' + esc(r.nameEn) + '. Drag right to keep, left to pass, tap for details.">' +
+    '<div class="dc-body">' +
+    '<div class="dc-top"><span>' + esc(P.districts[r.district].nameEn) + '</span>' + (e.full ? '<span class="dc-fitall">Fits all your chips</span>' : '') + '</div>' +
+    '<div class="dc-emblem">' + emblem(r) + '</div>' +
+    '<h2 class="dc-name">' + esc(n.main) + '</h2>' +
+    '<p class="dc-sub">' + (n.sub ? esc(n.sub) + ' · ' : '') + zh(r.nameZh) + '</p>' +
+    (S.chips.length ? fitsHtml(e) : '') + dietHtml(e, 'dline-card') +
+    '</div><span class="stamp keep" aria-hidden="true">Keep</span><span class="stamp pass" aria-hidden="true">Pass</span></article>';
+}
+function renderDiscover() {
+  var sig = [S.submitted, S.chips.join(), S.kept.join(), S.said].join('|');
+  if (sig === S.sig) { layoutDeck(false); return; }
+  S.sig = sig;
+  var h = '<header class="top"><a class="brand" href="' + discoverHash() + '">' + BRAND_MARK + '<span>China Food <b>Guide</b></span></a><span class="proto">Prototype · draft data</span></header>';
+  if (!S.submitted) {
+    h += '<div class="deck"><div class="deck-inner">' +
+      peeks() +
+      '<form class="composer" id="composer"><label for="say">Tell us about tonight</label>' +
+      '<textarea id="say" name="say" rows="4" spellcheck="false">' + esc(S.said) + '</textarea>' +
+      '<p>We turn it into chips you can edit, then deal you the six places. Scripted demo: keyword rules, no model connected.</p></form>' +
+      '</div></div>' +
+      '<div class="controls"><div class="meta-row"><span class="demo" style="padding:0">Six draft restaurants in Beijing</span></div>' +
+      '<button class="deal" type="submit" form="composer" data-act="deal">Deal my cards ' + ic('deck') + '</button></div>';
+  } else {
+    h += '<div class="chipbar"><div class="chips-scroll" role="list">' +
+      '<button class="chip ghost" data-act="edit" role="listitem">' + ic('pen') + 'Edit</button>' +
+      S.chips.map(function (v) { return '<button class="chip on" role="listitem" data-act="rm-chip" data-v="' + v + '" aria-label="Remove ' + esc(OPT[v].label) + '">' + esc(OPT[v].label) + ic('x') + '</button>'; }).join('') +
+      '<button class="chip ghost" data-act="more" role="listitem">' + ic('plus') + 'More</button></div>' +
+      '<p class="demo">Your sentence, read by keyword rules (scripted demo, no model connected).</p></div>' +
+      '<div class="deck"><div class="deck-inner" id="deck">' +
+      ranked(S.chips).filter(function (x) { return S.kept.indexOf(x.r.id) < 0; }).map(function (x) { return cardHtml(x.r, x.e); }).join('') +
+      '<div class="deck-empty" id="deck-empty" hidden><h2>That’s all six.</h2><p>Your kept places are in the shortlist.</p><a class="btn lime" href="#/shortlist">Open shortlist</a><button class="chip ghost" data-act="reset-deck">Put them all back</button></div>' +
+      '</div></div>' +
+      '<div class="controls"><div class="meta-row"><div class="dots" id="dots"></div>' + trayHtml() + '</div>' +
+      '<div class="btns"><button class="rb pass" data-act="pass"><span class="disc">' + ic('x') + '</span>Pass</button>' +
+      '<button class="rb info" data-act="details"><span class="disc">' + ic('up') + '</span>Details</button>' +
+      '<button class="rb keep" data-act="keep"><span class="disc">' + ic('check') + '</span>Keep</button></div></div>';
+  }
+  $discover.innerHTML = h;
+  if (S.submitted) { bindDeck(); void document.getElementById('deck').offsetWidth; layoutDeck(true); }
+}
+function peeks() {
+  var ids = ranked(S.chips).slice(0, 2).map(function (x) { return x.r; });
+  return '<div class="peek" style="background:' + lk(ids[1]).c + ';transform:translateY(26px) scale(.9)"></div><div class="peek" style="background:' + lk(ids[0]).c + ';transform:translateY(13px) scale(.95)"></div>';
+}
+function trayHtml() {
+  var items = S.kept.map(byId).filter(Boolean);
+  return '<a class="tray" id="tray" href="#/shortlist" aria-label="Shortlist, ' + items.length + ' kept">' +
+    (items.length ? '<span class="tray-stack">' + items.slice(-4).map(function (r) { var l = lk(r); return '<span style="--tc:' + l.c + ';--tk:' + l.k + ';--c:' + l.c + ';--hi:' + l.hi + '">' + emblem(r) + '</span>'; }).join('') + '</span>' : '') +
+    '<span>' + (items.length ? items.length + ' kept' : 'None kept yet') + '</span></a>';
+}
+function layoutDeck(instant) {
+  var box = document.getElementById('deck');
+  if (!box) return;
+  var cards = box.querySelectorAll('.dcard');
+  Array.prototype.forEach.call(cards, function (el) {
+    var pos = S.deck.indexOf(el.getAttribute('data-id'));
+    el.classList.remove('l0', 'l1', 'l2', 'hide');
+    el.classList.add(pos === 0 ? 'l0' : pos === 1 ? 'l1' : pos === 2 ? 'l2' : 'hide');
+    el.style.zIndex = pos < 0 ? 0 : 10 - pos;
+    el.setAttribute('tabindex', pos === 0 ? '0' : '-1');
+    el.setAttribute('aria-hidden', pos === 0 ? 'false' : 'true');
+    if (pos !== 0) { el.style.transform = ''; }
+  });
+  document.getElementById('deck-empty').hidden = S.deck.length > 0;
+  var rk = ranked(S.chips);
+  document.getElementById('dots').innerHTML = rk.map(function (x) {
+    var kept = S.kept.indexOf(x.r.id) >= 0;
+    return '<button class="dot' + (kept ? ' kept' : '') + '" style="--dc:' + lk(x.r).c + '" data-act="dot" data-id="' + x.r.id + '" aria-current="' + (S.deck[0] === x.r.id) + '" aria-label="' + esc(splitName(x.r.nameEn).main) + (kept ? ' (kept)' : '') + '"><span></span></button>';
+  }).join('');
+}
+function topCard() { var b = document.getElementById('deck'); return b && S.deck[0] ? b.querySelector('.dcard[data-id="' + S.deck[0] + '"]') : null; }
+
+/* swipe: real pointer dragging with distance and velocity thresholds */
+function bindDeck() {
+  var box = document.getElementById('deck');
+  var drag = null;
+  box.addEventListener('pointerdown', function (e) {
+    var el = e.target.closest('.dcard.l0');
+    if (!el || e.button > 0) return;
+    drag = { el: el, x: e.clientX, y: e.clientY, dx: 0, dy: 0, t: performance.now(), id: e.pointerId, moved: false, hist: [] };
+    el.setPointerCapture(e.pointerId);
+    el.style.transition = 'none';
+  });
+  box.addEventListener('pointermove', function (e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    drag.dx = e.clientX - drag.x; drag.dy = e.clientY - drag.y;
+    if (Math.abs(drag.dx) > 6 || Math.abs(drag.dy) > 6) drag.moved = true;
+    var now = performance.now();
+    drag.hist.push([now, e.clientX]); if (drag.hist.length > 6) drag.hist.shift();
+    paintDrag(drag.el, drag.dx, drag.dy);
+  });
+  function end(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var d = drag; drag = null;
+    d.el.style.transition = '';
+    var w = d.el.offsetWidth;
+    var v = 0;
+    if (d.hist.length > 1) { var a = d.hist[0], b = d.hist[d.hist.length - 1]; v = (b[1] - a[1]) / Math.max(1, b[0] - a[0]); }
+    if (!d.moved && e.type === 'pointerup') { settle(d.el); openDetails(); return; }
+    if (d.dx > w * 0.32 || (v > 0.55 && d.dx > 30)) fling(d.el, 1, d.dy);
+    else if (d.dx < -w * 0.32 || (v < -0.55 && d.dx < -30)) fling(d.el, -1, d.dy);
+    else settle(d.el);
+  }
+  box.addEventListener('pointerup', end);
+  box.addEventListener('pointercancel', end);
+  box.addEventListener('keydown', function (e) {
+    if (!e.target.classList.contains('dcard')) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); act('keep'); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); act('pass'); }
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetails(); }
+  });
+}
+function paintDrag(el, dx, dy) {
+  var rot = REDUCED ? 0 : dx / 16;
+  el.style.transform = 'translate(' + dx + 'px,' + (dy * 0.3) + 'px) rotate(' + rot + 'deg)';
+  var w = el.offsetWidth * 0.32;
+  el.querySelector('.stamp.keep').style.opacity = Math.max(0, Math.min(1, dx / w));
+  el.querySelector('.stamp.pass').style.opacity = Math.max(0, Math.min(1, -dx / w));
+}
+function settle(el) {
+  el.style.transform = '';
+  el.querySelector('.stamp.keep').style.opacity = 0;
+  el.querySelector('.stamp.pass').style.opacity = 0;
+}
+var busy = false;
+function fling(el, dir, dy) {
+  if (busy) return;
+  busy = true;
+  var id = el.getAttribute('data-id');
+  el.querySelector(dir > 0 ? '.stamp.keep' : '.stamp.pass').style.opacity = 1;
+  el.style.transition = REDUCED ? 'opacity .15s' : 'transform .34s cubic-bezier(.3,.6,.4,1), opacity .34s';
+  if (REDUCED) el.style.opacity = 0;
+  else el.style.transform = 'translate(' + (dir * 1.35 * el.offsetWidth) + 'px,' + ((dy || 0) * 0.3 + 30) + 'px) rotate(' + (dir * 24) + 'deg)';
+  setTimeout(function () {
+    busy = false;
+    el.style.transition = 'none'; el.style.opacity = '';
+    settle(el);
+    S.deck.splice(S.deck.indexOf(id), 1);
+    if (dir > 0) { S.kept.push(id); saveKept(); el.remove(); S.sig = [S.submitted, S.chips.join(), S.kept.join(), S.said].join('|'); refreshTray(true); }
+    else S.deck.push(id);
+    layoutDeck(false);
+    void el.offsetWidth;
+    el.style.transition = '';
+    updatePill();
+  }, REDUCED ? 160 : 340);
+}
+function refreshTray(bump) {
+  var t = document.getElementById('tray');
+  if (!t) return;
+  t.outerHTML = trayHtml();
+  if (bump && !REDUCED) { var n = document.getElementById('tray'); n.classList.add('bump'); }
+}
+function openDetails() { if (S.deck[0]) location.hash = '#/r/' + S.deck[0]; }
+
+/* ---------- sheets ---------- */
+function showLayer(layer, html) {
+  layer.innerHTML = html; layer.hidden = false;
+  requestAnimationFrame(function () { layer.classList.add('open'); });
+}
+function hideLayer(layer) { layer.classList.remove('open'); layer.hidden = true; layer.innerHTML = ''; }
+function snaps() { var H = phone.clientHeight; return { full: Math.max(54, H * 0.07), half: H * 0.46, closed: H }; }
+function bindSheet(sheet, onClose, startAt) {
+  var grab = sheet.querySelector('.grab, .ask-head');
+  var sn = snaps();
+  var y = sn[startAt || 'full'];
+  if (startAt !== 'auto') sheet.style.height = (sn.closed - sn.full) + 'px';
+  sheet.style.transform = 'translateY(' + sn.closed + 'px)';
+  void sheet.offsetWidth;
+  sheet.classList.add('anim');
+  if (startAt === 'auto') { sheet.style.transform = 'translateY(0)'; } else sheet.style.transform = 'translateY(' + y + 'px)';
+  var d = null;
+  grab.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('button, a')) return;
+    d = { y0: e.clientY, base: startAt === 'auto' ? 0 : y, t: performance.now(), last: e.clientY, lt: performance.now(), v: 0 };
+    grab.setPointerCapture(e.pointerId);
+    sheet.classList.remove('anim');
+  });
+  grab.addEventListener('pointermove', function (e) {
+    if (!d) return;
+    var now = performance.now();
+    d.v = (e.clientY - d.last) / Math.max(1, now - d.lt); d.last = e.clientY; d.lt = now;
+    var ny = d.base + (e.clientY - d.y0);
+    var minY = startAt === 'auto' ? 0 : sn.full;
+    if (ny < minY) ny = minY - Math.sqrt(minY - ny) * 2;
+    sheet.style.transform = 'translateY(' + ny + 'px)';
+    d.cur = ny;
+  });
+  function up() {
+    if (!d) return;
+    var cur = d.cur == null ? d.base : d.cur, v = d.v; d = null;
+    sheet.classList.add('anim');
+    if (startAt === 'auto') {
+      if (cur > 120 || v > 0.6) { closeSheet(sheet, onClose); return; }
+      sheet.style.transform = 'translateY(0)'; return;
+    }
+    var target;
+    if (v > 0.7) target = cur < sn.half ? 'half' : 'closed';
+    else if (v < -0.7) target = 'full';
+    else target = cur < (sn.full + sn.half) / 2 ? 'full' : cur < (sn.half + sn.closed) / 2 - 40 ? 'half' : 'closed';
+    if (target === 'closed') { closeSheet(sheet, onClose); return; }
+    y = sn[target];
+    sheet.style.transform = 'translateY(' + y + 'px)';
+  }
+  grab.addEventListener('pointerup', up);
+  grab.addEventListener('pointercancel', up);
+}
+function closeSheet(sheet, onClose) {
+  sheet.classList.add('anim');
+  sheet.style.transform = 'translateY(' + phone.clientHeight + 'px)';
+  var layer = sheet.closest('.layer');
+  if (layer) layer.classList.remove('open');
+  setTimeout(onClose, REDUCED ? 0 : 260);
+}
+
+function dishRows(r) {
+  var ver = verifiedDishes(r), one = singleDishes(r);
+  var h = '<ul class="dishes">' + ver.map(function (d) {
+    var inner = '<span class="nm">' + zh(d.nameZh) + '<span>' + esc(d.nameEn) + '</span></span><span class="tag two">Two sources</span>';
+    return '<li>' + (d.slug ? '<a class="dish" href="#/r/' + r.id + '?ask=' + d.slug + '">' + inner + '</a>' : '<div class="dish">' + inner + '</div>') + '</li>';
+  }).join('') + '</ul>';
+  if (one.length) h += '<h3 style="margin-top:14px">One source so far</h3><ul class="dishes single">' + one.map(function (d) {
+    return '<li><div class="dish"><span class="nm">' + zh(d.nameZh) + '<span>' + esc(d.nameEn) + '</span></span><span class="tag one">One source</span></div></li>';
+  }).join('') + '</ul>';
+  var lib = libDishes(r);
+  h += '<p class="note">' + (lib.length ? 'Tap ' + esc(listJoin(lib.map(shortDish))) + ' for our dish notes.' : 'None of these dishes has an entry in our dish notes yet, so there are no allergen notes to show.') + '</p>';
+  return h;
+}
+function sheetHtml(r) {
+  var n = splitName(r.nameEn), e = evaluate(r, S.chips), lib = libDishes(r), nc = notConfirmed(r);
+  var askBtn = lib.length
+    ? '<a class="btn sec2" href="#/r/' + r.id + '?ask=' + lib[0].slug + '">Ask about a dish</a>'
+    : '<a class="btn sec2" aria-disabled="true" href="#/r/' + r.id + '?ask=none">Ask about a dish</a>';
+  return '<div class="scrim" data-act="close-sheet"></div>' +
+    '<section class="sheet" style="' + vars(r) + '" role="dialog" aria-modal="true" aria-labelledby="sh-t">' +
+    '<div class="grab"><div class="grab-top"><span class="proto">Prototype · draft data</span><span class="handle" aria-hidden="true"></span><span class="gt-pad"></span></div>' +
+    '<div class="grab-row">' + emblem(r, 'emb') + '<div style="flex:1;min-width:0"><h2 id="sh-t">' + esc(n.main) + '</h2><p>' + (n.sub ? esc(n.sub) + ' · ' : '') + zh(r.nameZh) + '</p></div>' +
+    '<button class="sh-x" data-act="close-sheet" aria-label="Close details">' + ic('x') + '</button></div>' +
+    '<div class="grab-meta"><span>' + esc(P.districts[r.district].nameEn) + ' · ' + esc(r.areaNote) + '</span></div></div>' +
+    '<div class="sh-scroll">' +
+    '<p class="sh-why">' + esc(r.why) + '</p>' +
+    (S.submitted && S.chips.length ? fitsHtml(e) + dietHtml(e) : '') +
+    '<button class="plate" data-act="plate" data-id="' + r.id + '" aria-label="Show the address full screen for a taxi driver"><span class="plate-l"><span>' + ic('car') + ' Show the driver</span>' + ic('expand') + '</span>' +
+    zh(r.addressZh) + '<span class="en">' + esc(r.addressEn) + '</span></button>' +
+    (r.addressPartial ? '<p class="note">' + esc(r.addressPartial) + '</p>' : '') +
+    '<div class="sec"><h3>Local view</h3><p>' + esc(r.localView) + '</p></div>' +
+    '<div class="sec"><h3>For you, as a visitor</h3><p>' + esc(r.visitorView) + '</p></div>' +
+    '<div class="sec"><h3>Dishes</h3>' + dishRows(r) + '</div>' +
+    (nc.length ? '<p class="unconf"><b>Not yet confirmed by two sources:</b> ' + esc(listJoin(nc)) + '.</p>' : '') +
+    '<p class="srcs">Sources: ' + esc(sourceNames(r).join('; ')) + '. Checked ' + esc(fmtDate(r.checkedOn)) + '.</p>' +
+    '</div>' +
+    '<div class="sh-actions">' + askBtn + '<a class="btn pri" href="' + orderHash(r.id) + '">Build my order</a></div>' +
+    '</section>';
+}
+var openSheetId = null;
+function openSheet(r) {
+  if (openSheetId === r.id && !L.sheet.hidden) return;
+  openSheetId = r.id;
+  showLayer(L.sheet, sheetHtml(r));
+  bindSheet(L.sheet.querySelector('.sheet'), function () { openSheetId = null; hideLayer(L.sheet); if (/^#\/r\//.test(location.hash)) location.hash = discoverHash(); }, 'full');
+}
+function askHtml(r, slug, topic) {
+  if (slug === 'none' || !P.dishes[slug]) {
+    return '<div class="scrim" data-act="close-ask"></div><section class="sheet" role="dialog" aria-modal="true" aria-labelledby="ask-t">' +
+      '<div class="ask-head"><span class="handle" aria-hidden="true"></span><h2 id="ask-t">No dish notes here yet</h2>' +
+      '<p>None of the dishes at ' + esc(splitName(r.nameEn).main) + ' has an entry in our dish notes, so there is nothing to answer from. Ask staff; the card helps.</p></div>' +
+      '<div class="answer"><a class="btn pri" href="' + orderHash(r.id) + '">Build my order instead</a></div></section>';
+  }
+  var d = P.dishes[slug], a = askAnswer(slug, topic);
+  return '<div class="scrim" data-act="close-ask"></div><section class="sheet" role="dialog" aria-modal="true" aria-labelledby="ask-t">' +
+    '<div class="ask-head"><span class="handle" aria-hidden="true"></span><h2 id="ask-t">' + esc(shortDish(d)) + ' ' + zh(d.nameZh) + '</h2>' +
+    '<p>Scripted demo: answers are quoted from our dish notes only, no model connected.</p></div>' +
+    '<div class="seg" role="group" aria-label="Questions">' + ASK_TOPICS.map(function (t) {
+      return '<button data-act="topic" data-t="' + t[0] + '" aria-pressed="' + (t[0] === topic) + '">' + esc(t[1]) + '</button>';
+    }).join('') + '</div>' +
+    '<div class="answer" aria-live="polite"><p class="q">' + esc(a.q) + '</p>' +
+    a.paras.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') +
+    (a.items.length ? '<dl>' + a.items.map(function (it) { return '<dt>' + esc(it.label) + '</dt><dd>' + esc(it.text) + '</dd>'; }).join('') + '</dl>' : '') +
+    (a.caution ? '<p class="dline clash" style="margin-top:12px">' + ic('warn') + '<span>' + esc(a.caution) + '</span></p>' : '') +
+    '<p class="from">From our dish notes on ' + esc(shortDish(d)) + ' (draft). Typical preparation, not this kitchen.</p></div></section>';
+}
+function openAsk(r, slug, topic) {
+  showLayer(L.ask, askHtml(r, slug, topic || 'what'));
+  var sh = L.ask.querySelector('.sheet');
+  bindSheet(sh, function () { hideLayer(L.ask); location.hash = '#/r/' + r.id; }, 'auto');
+}
+function driverOverlay(r) {
+  showLayer(L.top, '<div class="driver" role="dialog" aria-modal="true" aria-label="Address for the driver"><button class="nav-back x" data-act="close-top" aria-label="Close" style="color:#fff">' + ic('x') + '</button>' +
+    '<p style="font-size:16px;color:#CFC9BD">Please take me to</p>' + zh(r.addressZh) + '<p style="margin-top:18px;font-size:17px;color:#DCD6CA">' + esc(r.addressEn) + '</p>' +
+    (r.addressPartial ? '<p style="font-size:16px;color:#CFC9BD">' + esc(r.addressPartial) + '</p>' : '') + '</div>');
+}
+
+/* ---------- order ---------- */
+function orderOut(r) {
+  var o = buildOrder(r, S.party, curDiet());
+  var h = '';
+  if (o.order.length) h += '<p class="o-h">Suggested order · for ' + S.party + '</p><ol class="olist">' + o.order.map(itemHtml).join('') + '</ol>';
+  if (o.ask.length) h += '<p class="o-h">Ask staff first</p><ol class="olist">' + o.ask.map(itemHtml).join('') + '</ol>';
+  if (!o.order.length && !o.ask.length) h += '<p class="o-h">Suggested order</p><p class="warn" style="padding:12px 14px">Nothing on this restaurant’s verified dish list fits these needs. The card still works: it asks staff to recommend dishes that do.</p>';
+  if (o.out.length) h += '<p class="o-h">Left out</p><ul class="outlist">' + o.out.map(function (x) {
+    return '<li class="dline clash">' + ic('warn') + '<span>' + zh(x.d.nameZh) + ' ' + esc(x.d.nameEn) + ': ' + esc(x.why) + '</span></li>';
+  }).join('') + '</ul>';
+  if (o.single.length) h += '<p class="meta">' + o.single.length + ' more ' + (o.single.length === 1 ? 'dish is' : 'dishes are') + ' listed by one source only, so the plan leaves ' + (o.single.length === 1 ? 'it' : 'them') + ' out.</p>';
+  if (o.order.length + o.ask.length === 1) h += '<p class="meta">This guide has only one verified dish on file here that fits. The card asks staff to recommend more.</p>';
+  return h;
+  function itemHtml(it) {
+    return '<li class="enter">' + zh(it.d.nameZh) + (it.qty.zh ? '<span class="qz zh" lang="zh-Hans">' + esc(it.qty.zh) + '</span>' : '') +
+      '<span class="en">' + esc(it.d.nameEn) + '</span><p>' + esc(it.qty.en) + '</p>' +
+      (it.typical.length ? '<p>Typically contains ' + esc(it.typical.join(', ')) + '.</p>' : '') +
+      (it.why ? '<p class="dline clash warn">' + ic('warn') + '<span>' + esc(it.why) + '</span></p>' : '') + '</li>';
+  }
+}
+function orderPage(r) {
+  var diet = curDiet();
+  return '<section class="page" role="region" aria-label="Build my order">' +
+    '<header class="pg-top"><a class="nav-back" href="#/r/' + r.id + '" aria-label="Back to ' + esc(splitName(r.nameEn).main) + '">' + ic('back') + '</a><h1>Build my order</h1><span class="proto">Prototype · draft data</span></header>' +
+    '<div class="pg-body">' +
+    '<div class="o-rest" style="' + vars(r) + '">' + emblem(r) + '<div><b>' + esc(splitName(r.nameEn).main) + '</b>' + zh(r.nameZh) + '</div></div>' +
+    '<div class="stepper"><span class="lbl" id="party-l">How many of you?</span><div class="ctl"><button data-act="party" data-d="-1" aria-label="One fewer">' + ic('minus') + '</button><output id="party" aria-labelledby="party-l" aria-live="polite">' + S.party + '</output><button data-act="party" data-d="1" aria-label="One more">' + ic('plus') + '</button></div></div>' +
+    '<div class="togs" role="group" aria-label="Dietary needs"><p>Anything the table can’t eat?</p>' +
+    ['no-pork', 'peanut', 'sesame'].map(function (v) { return '<button class="tog" role="switch" data-act="diet" data-v="' + v + '" aria-checked="' + (diet.indexOf(v) >= 0) + '">' + esc(OPT[v].label) + '<span class="sw" aria-hidden="true"></span></button>'; }).join('') + '</div>' +
+    '<p class="demo">Scripted demo: rules pick only from this restaurant’s verified dish list. No model connected.</p>' +
+    '<div class="out" id="o-out">' + orderOut(r) + '</div></div>' +
+    '<div class="pg-cta"><a class="btn lime" id="to-card" href="' + cardHash(r.id) + '" style="width:100%;min-height:60px;font-size:19px">' + ic('card') + 'Show the card to staff</a></div></section>';
+}
+function shortlistPage() {
+  var items = S.kept.map(byId).filter(Boolean);
+  return '<section class="page" role="region" aria-label="Shortlist">' +
+    '<header class="pg-top"><a class="nav-back" href="' + discoverHash() + '" aria-label="Back to the deck">' + ic('back') + '</a><h1>Shortlist</h1><span class="proto">Prototype · draft data</span></header>' +
+    '<div class="pg-body" style="padding-bottom:calc(var(--pill-h) + 40px)">' +
+    (items.length ? '<ul class="slist">' + items.map(function (r) {
+      return '<li style="' + vars(r) + '"><a href="#/r/' + r.id + '">' + emblem(r) + '<span><b>' + esc(splitName(r.nameEn).main) + '</b>' + zh(r.nameZh) + '<br>' + esc(P.districts[r.district].nameEn) + '</span></a>' +
+        '<button data-act="unkeep" data-id="' + r.id + '" aria-label="Remove ' + esc(splitName(r.nameEn).main) + ' from the shortlist">' + ic('x') + '</button></li>';
+    }).join('') + '</ul>' : '<div class="empty"><b>Nothing kept yet.</b>Swipe a card right, or tap Keep, and it lands here.</div>') +
+    '<p class="meta">Kept on this phone only.</p></div></section>';
+}
+function openPage(html, key) {
+  if (L.page.getAttribute('data-key') === key && !L.page.hidden) return false;
+  var was = !L.page.hidden;
+  L.page.setAttribute('data-key', key);
+  L.page.innerHTML = html; L.page.hidden = false;
+  var pg = L.page.querySelector('.page');
+  if (was || REDUCED) pg.classList.add('in');
+  else { void pg.offsetWidth; pg.classList.add('anim'); requestAnimationFrame(function () { pg.classList.add('in'); }); }
+  return true;
+}
+
+/* ---------- staff card ---------- */
+function cardPage(r, q) {
+  var o = buildOrder(r, S.party, curDiet());
+  var ids = o.cards;
+  var ci = Math.max(0, Math.min(ids.length - 1, Number(q.c) || 0));
+  var m = cardModel(o, ids[ci] || null);
+  S.last = r.id;
+  var front = '<div class="face front" lang="zh-Hans">' +
+    '<p class="f-g">' + esc(m.greeting.zh) + '</p>' +
+    (m.items.length ? '<ol class="f-ord">' + m.items.map(function (it) { return '<li>' + esc(it.zh) + (it.qzh ? '<b>' + esc(it.qzh) + '</b>' : '') + '</li>'; }).join('') + '</ol>' : '') +
+    (m.card ? '<p class="f-st">' + esc(m.body[0].zh) + '</p>' + m.body.slice(1).map(function (l) { return '<p class="f-s2">' + esc(l.zh) + '</p>'; }).join('') : '') +
+    '<p class="f-cl">' + esc(m.closing.zh) + '</p></div>';
+  var back = '<div class="face back" hidden><h2>What the card says</h2>' +
+    '<p>' + esc(m.greeting.en) + '</p>' +
+    (m.items.length ? '<ol>' + m.items.map(function (it) { return '<li><b>' + esc(it.en) + '</b>' + (it.qen ? '. ' + esc(it.qen) : '') + '</li>'; }).join('') + '</ol>' : '<p><i>No dish from the verified list fits, so the card lists none.</i></p>') +
+    (m.card ? m.body.map(function (l) { return '<p>' + esc(l.en) + '</p>'; }).join('') : '<p><i>No dietary card chosen. Add one on the order screen.</i></p>') +
+    '<p>' + esc(m.closing.en) + '</p>' +
+    (m.card && m.card.noteEn ? '<p style="color:#3D3A35">' + esc(m.card.noteEn) + '</p>' : '') +
+    '<p class="dline clash warn">' + ic('warn') + '<span>' + esc(P.cardsDisclaimer) + '</span></p></div>';
+  return '<section class="cardpage" role="dialog" aria-modal="true" aria-label="Card to show staff">' +
+    '<div class="cp-top"><a class="nav-back" href="' + orderHash(r.id) + '" aria-label="Back to the order">' + ic('x') + '</a><span class="cp-for">For staff at ' + esc(splitName(r.nameEn).main) + (m.card ? ' · ' + esc(m.card.titleEn) : '') + '</span><span class="proto">Prototype · draft data</span></div>' +
+    '<div class="flip" id="flip">' + front + back + '</div>' +
+    '<div class="cp-bot">' + (ids.length > 1 ? '<div class="cp-dots">' + ids.map(function (id, i) { return '<a href="' + cardHash(r.id, i) + '" aria-current="' + (i === ci) + '" aria-label="' + esc(P.cards[id].titleEn) + '">' + (i + 1) + '</a>'; }).join('') + '</div>' : '') +
+    '<button class="btn" data-act="flip" aria-pressed="false">' + ic('flip') + '<span>English for you</span></button></div></section>';
+}
+
+/* ---------- pill bar ---------- */
+function updatePill(active) {
+  var cardTarget = S.last || S.deck[0] || P.restaurants[0].id;
+  active = active || $pill.getAttribute('data-active') || 'discover';
+  $pill.setAttribute('data-active', active);
+  $pill.innerHTML =
+    '<a href="' + discoverHash() + '"' + (active === 'discover' ? ' aria-current="page"' : '') + '>' + ic('deck') + 'Discover</a>' +
+    '<a href="#/shortlist"' + (active === 'shortlist' ? ' aria-current="page"' : '') + '>' + ic('mark') + 'Shortlist' + (S.kept.length ? '<span class="badge">' + S.kept.length + '</span>' : '') + '</a>' +
+    '<a href="' + cardHash(cardTarget) + '"' + (active === 'card' ? ' aria-current="page"' : '') + '>' + ic('card') + 'Card</a>';
+}
+
+/* ---------- router ---------- */
+function render() {
+  var h = parseHash(), p = h.parts, q = h.q;
+  if (q.chips !== undefined) {
+    var c = q.chips.split(',').filter(function (v) { return OPT[v]; });
+    if (!S.submitted || c.join() !== S.chips.join()) { S.submitted = true; S.chips = c; S.diet = null; rerank(); }
+  }
+  if (q.n) S.party = clampParty(q.n);
+  if (q.diet !== undefined) S.diet = q.diet.split(',').filter(function (v) { return P.cards[v]; });
+  renderDiscover();
+  var r = p[1] ? byId(p[1]) : null;
+  var covered = false, active = 'discover';
+  if (p[0] === 'r' && r) {
+    openSheet(r); covered = true;
+    if (q.ask) openAsk(r, q.ask, q.t); else if (!L.ask.hidden) hideLayer(L.ask);
+  } else { if (!L.sheet.hidden) { openSheetId = null; hideLayer(L.sheet); } if (!L.ask.hidden) hideLayer(L.ask); }
+  if (p[0] === 'order' && r) { openPage(orderPage(r), 'order-' + r.id); covered = true; }
+  else if (p[0] === 'shortlist') { openPage(shortlistPage(), 'shortlist-' + S.kept.join()); active = 'shortlist'; }
+  else { L.page.hidden = true; L.page.innerHTML = ''; L.page.removeAttribute('data-key'); }
+  if (p[0] === 'card' && r) { showLayer(L.top, cardPage(r, q)); covered = true; active = 'card'; }
+  else if (L.top.querySelector('.cardpage')) hideLayer(L.top);
+  phone.classList.toggle('covered', covered);
+  updatePill(active);
+}
+
+function act(name, t) {
+  var r;
+  switch (name) {
+    case 'deal': {
+      var ta = document.getElementById('say');
+      S.said = (ta && ta.value.trim()) || PREFILL;
+      var p = parseSentence(S.said);
+      S.chips = p.chips; if (p.party) S.party = p.party; S.submitted = true; S.diet = null; rerank();
+      location.hash = discoverHash();
+      break;
+    }
+    case 'edit': S.submitted = false; location.hash = '#/'; render(); break;
+    case 'rm-chip': S.chips = S.chips.filter(function (v) { return v !== t.getAttribute('data-v'); }); S.diet = null; rerank(); location.hash = discoverHash(); break;
+    case 'more': chipSheet(); break;
+    case 'toggle-chip': {
+      var v = t.getAttribute('data-v');
+      var on = S.chips.indexOf(v) >= 0;
+      S.chips = on ? S.chips.filter(function (x) { return x !== v; }) : S.chips.concat([v]);
+      t.setAttribute('aria-pressed', String(!on));
+      break;
+    }
+    case 'chips-done': hideLayer(L.top); S.diet = null; rerank(); S.sig = ''; location.hash = discoverHash(); render(); break;
+    case 'pass': { var a = topCard(); if (a) fling(a, -1, 0); break; }
+    case 'keep': { var b = topCard(); if (b) fling(b, 1, 0); break; }
+    case 'details': openDetails(); break;
+    case 'dot': {
+      var id = t.getAttribute('data-id');
+      if (S.kept.indexOf(id) >= 0) { location.hash = '#/r/' + id; break; }
+      var i = S.deck.indexOf(id);
+      if (i > 0) { S.deck = S.deck.slice(i).concat(S.deck.slice(0, i)); layoutDeck(false); }
+      break;
+    }
+    case 'reset-deck': S.kept = []; saveKept(); rerank(); S.sig = ''; render(); break;
+    case 'unkeep': S.kept = S.kept.filter(function (x) { return x !== t.getAttribute('data-id'); }); saveKept(); rerank(); S.sig = ''; L.page.removeAttribute('data-key'); render(); break;
+    case 'close-sheet': { var sh = L.sheet.querySelector('.sheet'); if (sh) closeSheet(sh, function () { openSheetId = null; hideLayer(L.sheet); location.hash = discoverHash(); }); break; }
+    case 'close-ask': { var as = L.ask.querySelector('.sheet'); var rid = parseHash().parts[1]; if (as) closeSheet(as, function () { hideLayer(L.ask); location.hash = '#/r/' + rid; }); break; }
+    case 'topic': {
+      var hh = parseHash();
+      history.replaceState(null, '', '#/r/' + hh.parts[1] + '?ask=' + hh.q.ask + '&t=' + t.getAttribute('data-t'));
+      r = byId(hh.parts[1]);
+      var shell = L.ask.querySelector('.sheet');
+      var tmp = document.createElement('div'); tmp.innerHTML = askHtml(r, hh.q.ask, t.getAttribute('data-t'));
+      shell.querySelector('.seg').outerHTML = tmp.querySelector('.seg').outerHTML;
+      shell.querySelector('.answer').outerHTML = tmp.querySelector('.answer').outerHTML;
+      break;
+    }
+    case 'plate': driverOverlay(byId(t.getAttribute('data-id'))); break;
+    case 'close-top': hideLayer(L.top); break;
+    case 'party': {
+      S.party = clampParty(S.party + Number(t.getAttribute('data-d')));
+      refreshOrder(true);
+      break;
+    }
+    case 'diet': {
+      var dv = t.getAttribute('data-v'), cur = curDiet().slice();
+      cur = cur.indexOf(dv) >= 0 ? cur.filter(function (x) { return x !== dv; }) : cur.concat([dv]);
+      S.diet = cur;
+      t.setAttribute('aria-checked', String(cur.indexOf(dv) >= 0));
+      refreshOrder(false);
+      break;
+    }
+    case 'flip': {
+      var f = document.getElementById('flip');
+      var en = !f.classList.contains('en');
+      var swap = function () {
+        f.classList.toggle('en', en);
+        f.querySelector('.face.front').hidden = en;
+        f.querySelector('.face.back').hidden = !en;
+        t.setAttribute('aria-pressed', String(en));
+        t.querySelector('span').textContent = en ? '中文 for staff' : 'English for you';
+      };
+      if (REDUCED) { swap(); break; }
+      /* two-phase turn: rotate to the edge, swap faces, spring back (no preserve-3d, which breaks scrolling faces) */
+      f.style.transition = 'transform .16s ease-in';
+      f.style.transform = 'perspective(900px) rotateY(90deg)';
+      setTimeout(function () {
+        swap();
+        f.style.transition = 'none'; f.style.transform = 'perspective(900px) rotateY(-90deg)';
+        void f.offsetWidth;
+        f.style.transition = 'transform .55s var(--spring)'; f.style.transform = '';
+      }, 170);
+      break;
+    }
+  }
+}
+function refreshOrder(pop) {
+  var r = byId(parseHash().parts[1]);
+  if (!r) return;
+  var out = document.getElementById('party');
+  out.textContent = S.party;
+  if (pop && !REDUCED) { out.classList.remove('pop'); void out.offsetWidth; out.classList.add('pop'); }
+  document.getElementById('o-out').innerHTML = orderOut(r);
+  document.getElementById('to-card').setAttribute('href', cardHash(r.id));
+  history.replaceState(null, '', orderHash(r.id));
+  L.page.setAttribute('data-key', 'order-' + r.id);
+}
+function chipSheet() {
+  var by = {};
+  OPTS.forEach(function (o) { (by[o.k] = by[o.k] || []).push(o); });
+  showLayer(L.top, '<div class="scrim" data-act="chips-done"></div><section class="sheet" style="top:auto;bottom:0;height:auto;max-height:86%;transform:none;overflow:auto" role="dialog" aria-modal="true" aria-labelledby="cs-t">' +
+    '<div class="ask-head"><span class="handle" aria-hidden="true"></span><h2 id="cs-t">Edit your chips</h2><p>Tap to switch a chip on or off.</p></div>' +
+    Object.keys(by).map(function (k) {
+      return '<div class="seg" role="group" aria-label="' + esc(GROUP_LABEL[k]) + '"><p class="o-h" style="width:100%;margin:6px 0 0">' + esc(GROUP_LABEL[k]) + '</p>' + by[k].map(function (o) {
+        return '<button data-act="toggle-chip" data-v="' + o.v + '" aria-pressed="' + (S.chips.indexOf(o.v) >= 0) + '">' + esc(o.label) + '</button>';
+      }).join('') + '</div>';
+    }).join('') +
+    '<div class="answer"><button class="btn pri" style="width:100%" data-act="chips-done">Done, re-deal</button></div></section>');
+}
+
+document.addEventListener('click', function (e) {
+  var t = e.target.closest('[data-act]');
+  if (!t) return;
+  var a = t.getAttribute('data-act');
+  if (a === 'deal') return;
+  e.preventDefault();
+  act(a, t);
+});
+document.addEventListener('submit', function (e) { if (e.target.id === 'composer') { e.preventDefault(); act('deal'); } });
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    if (!L.top.hidden && !L.top.querySelector('.cardpage')) hideLayer(L.top);
+    else if (!L.ask.hidden) act('close-ask');
+    else if (!L.sheet.hidden) act('close-sheet');
+  }
+  if (e.key === 'Enter' && e.target.id === 'say' && !e.shiftKey) { e.preventDefault(); act('deal'); }
+});
+window.addEventListener('hashchange', render);
+render();
+})();
+</script>
+</body>
+</html>

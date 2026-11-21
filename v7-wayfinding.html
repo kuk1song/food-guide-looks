@@ -1,0 +1,879 @@
+<!doctype html>
+<!--
+  V7 "Wayfinding": designed for a visitor on a sunny street, one hand free, unable to read Chinese.
+  Font: Overpass (variable, latin subset), by Delve Withrington, Dave Bailey and Thomas Jockin,
+  SIL Open Font License 1.1. Self-hosted from fonts/ (Fontsource @fontsource-variable/overpass 5.2.7).
+  Chinese uses the system stack. Pictograms are one hand-written inline SVG family (48 grid, stroke 4).
+  No network requests at runtime.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#111111">
+<title>Wayfinding · China Food Guide</title>
+<style>
+@font-face {
+  font-family: "Overpass";
+  src: url("fonts/overpass-latin-wght-normal.woff2") format("woff2");
+  font-weight: 100 900; font-display: swap;
+}
+:root {
+  --k: #111111; --w: #FFFFFF; --g: #4A4A4A; --rule: #111111; --soft: #EDEDE8;
+  --y: #FFD100;
+  --plate: #0B3D91;
+  --dongcheng: #00804A; --xicheng: #6B2C91; --chaoyang: #8B5A2B;
+  --red: #C8102E;
+  --zh: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: #2A2A2A; color: var(--k); font-family: "Overpass", system-ui, sans-serif; font-size: 18px; line-height: 1.45; font-weight: 450; -webkit-font-smoothing: antialiased; }
+.zh, [lang="zh-Hans"] { font-family: var(--zh); }
+a { color: inherit; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 4px solid var(--y); outline-offset: 2px; box-shadow: 0 0 0 8px var(--k); }
+svg.pg { width: 32px; height: 32px; flex: none; fill: none; stroke: currentColor; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+svg.pg .f { fill: currentColor; stroke: none; }
+.app { max-width: 430px; margin: 0 auto; min-height: 100vh; background: var(--w); padding-bottom: calc(24px + var(--safe-b)); }
+
+/* sign band */
+.band { position: sticky; top: 0; z-index: 20; background: var(--k); color: var(--w); display: flex; align-items: center; gap: 10px; padding: calc(6px + var(--safe-t)) 12px 6px 8px; min-height: 64px; }
+.band .home { display: flex; align-items: center; gap: 10px; text-decoration: none; min-height: 48px; flex: 1; min-width: 0; }
+.band .tile { width: 44px; height: 44px; background: var(--y); color: var(--k); display: grid; place-items: center; flex: none; }
+.band .wm { font-weight: 850; font-size: 21px; line-height: 1; letter-spacing: -.005em; }
+.band .wm small { white-space: nowrap; display: block; font-weight: 600; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--y); margin-top: 4px; }
+.band .arrow { width: 48px; height: 48px; display: grid; place-items: center; flex: none; color: var(--w); }
+.proto { flex: none; font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border: 2px solid currentColor; padding: 3px 6px 1px; line-height: 1.2; text-align: center; }
+
+/* route strip: where you are in the flow */
+.route { display: grid; grid-template-columns: repeat(4, 1fr); padding: 12px 8px 10px; border-bottom: 4px solid var(--k); background: var(--w); }
+.stop { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; min-height: 56px; font-size: 14px; font-weight: 750; text-transform: uppercase; letter-spacing: .04em; }
+.stop::before { content: ""; position: absolute; top: 16px; left: -50%; width: 100%; height: 4px; background: var(--k); z-index: 0; }
+.stop:first-child::before { display: none; }
+.stop .n { position: relative; z-index: 1; width: 34px; height: 34px; display: grid; place-items: center; border: 4px solid var(--k); background: var(--w); font-weight: 900; font-size: 18px; line-height: 1; padding-top: 3px; }
+.stop.done .n { background: var(--k); color: var(--w); }
+.stop.here .n { background: var(--y); color: var(--k); width: 40px; height: 40px; margin-top: -3px; font-size: 21px; }
+.stop.off { color: #6A6A6A; }
+.stop.off .n { border-color: #8A8A8A; color: #6A6A6A; }
+.stop.off::before { background: #8A8A8A; }
+
+.sec { padding: 20px 16px 4px; }
+.step { display: flex; align-items: center; gap: 12px; margin: 0 0 12px; }
+.num { width: 52px; height: 52px; flex: none; background: var(--k); color: var(--y); display: grid; place-items: center; font-weight: 900; font-size: 34px; line-height: 1; padding-top: 4px; }
+.step h2 { margin: 0; font-weight: 850; font-size: 25px; line-height: 1.1; letter-spacing: -.01em; white-space: nowrap; }
+@media (max-width: 350px) { .step h2 { white-space: normal; font-size: 22px; } }
+.say { width: 100%; min-height: 128px; resize: vertical; border: 4px solid var(--k); border-radius: 0; padding: 12px; font: 500 19px/1.4 "Overpass", system-ui, sans-serif; color: var(--k); background: var(--w); }
+.say:focus { outline: none; box-shadow: inset 0 0 0 3px var(--y); }
+.go {
+  width: 100%; min-height: 60px; margin: 10px 0 0; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 4px 14px 0 18px; background: var(--k); color: var(--y); font-weight: 850; font-size: 21px; text-decoration: none; text-align: left;
+}
+.go:active, .sign:active { background: var(--y); color: var(--k); }
+.go.y { background: var(--y); color: var(--k); }
+.go.y:active { background: var(--k); color: var(--y); }
+.demo { margin: 8px 0 0; font-size: 15px; color: var(--g); font-weight: 600; }
+
+/* filter tokens */
+.tokens { display: flex; flex-wrap: wrap; gap: 8px; }
+.tok { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 4px 8px 0 6px; border: 3px solid var(--k); font-weight: 750; font-size: 17px; background: var(--w); }
+.tok svg.pg { width: 30px; height: 30px; margin-top: -4px; }
+.tok .x { width: 26px; height: 26px; margin-left: 2px; display: grid; place-items: center; background: var(--k); color: var(--w); margin-top: -4px; }
+.tok .x svg { width: 16px; height: 16px; stroke-width: 6; }
+.tok.add { background: var(--k); color: var(--w); }
+.tok[aria-pressed="false"] { border-style: dashed; color: #555; }
+.no { position: relative; width: 30px; height: 30px; flex: none; margin-top: -4px; }
+.no svg { position: absolute; inset: 0; width: 30px; height: 30px; }
+.no .ring { color: var(--red); stroke-width: 4.5; }
+.legend-k { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 12px 0 0; padding: 0; list-style: none; font-size: 15px; font-weight: 650; color: var(--g); }
+.legend-k li { display: inline-flex; align-items: center; gap: 6px; }
+.addpanel { margin: 12px 0 0; border: 3px solid var(--k); padding: 10px; }
+.addpanel h3 { margin: 6px 0 6px; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; }
+
+/* restaurant rows: one sign per place */
+.rows { list-style: none; margin: 0; padding: 0; border-top: 4px solid var(--k); }
+.rows li { border-bottom: 4px solid var(--k); }
+.rows .divider { padding: 10px 0 6px; font-size: 15px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--g); border-bottom: 0; }
+.row { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; padding: 12px 0 12px; text-decoration: none; }
+.row:active { background: var(--y); }
+.row.best { background: var(--y); margin: 0 -16px; padding: 14px 16px; }
+.row .nm { font-weight: 850; font-size: 21px; line-height: 1.12; display: block; }
+.row .rzh { display: block; font-size: 18px; margin-top: 2px; font-weight: 600; }
+.nots { display: block; margin-top: 6px; font-size: 16px; font-weight: 650; color: #4A4A4A; }
+.row .meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 6px; font-size: 15px; font-weight: 700; }
+.row > svg.pg { margin-top: 6px; }
+.code { display: inline-grid; place-items: center; min-width: 48px; height: 48px; padding: 4px 4px 0; background: var(--lc); color: var(--w); font-weight: 900; font-size: 22px; line-height: 1; }
+.code.sm { min-width: 36px; height: 30px; font-size: 16px; }
+.best-tag { display: inline-block; background: var(--k); color: var(--y); font-size: 14px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 3px 7px 1px; margin-bottom: 6px; }
+.fit { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px 0 3px; border: 2px solid var(--k); font-size: 15px; font-weight: 750; line-height: 1.3; }
+.fit svg.pg { width: 18px; height: 18px; stroke-width: 6; margin-top: -3px; }
+.fit.y { background: var(--k); color: var(--w); }
+.fit.n { color: #555; border-color: #777; text-decoration: line-through; text-decoration-thickness: 2px; }
+.fit.u { border-style: dashed; }
+.dl { display: flex; gap: 10px; align-items: flex-start; margin: 8px 0 0; padding: 8px 10px 6px; font-size: 16px; line-height: 1.35; font-weight: 550; border: 3px solid var(--k); }
+.dl svg.pg { width: 26px; height: 26px; margin-top: -2px; }
+.dl.clash, .warn { background: var(--red); color: var(--w); border-color: var(--red); }
+.dl b { font-weight: 850; }
+
+/* network schematic */
+.net { margin: 18px 0 0; background: var(--k); color: var(--w); padding: 18px 16px 16px; }
+.net h2 { margin: 0; font-weight: 850; font-size: 24px; line-height: 1.1; }
+.net .disc { display: inline-block; margin: 8px 0 0; background: var(--w); color: var(--k); font-weight: 850; font-size: 15px; letter-spacing: .05em; text-transform: uppercase; padding: 4px 8px 2px; }
+.net p { margin: 8px 0 0; font-size: 16px; color: #E6E6E6; }
+.lines { margin: 18px 0 0; display: grid; gap: 18px; }
+.lrow { display: grid; grid-template-columns: 78px 1fr; align-items: start; gap: 6px; }
+.lname { font-weight: 850; font-size: 15px; line-height: 1.15; padding-top: 22px; }
+.lname .zh { display: block; font-weight: 600; color: #DADADA; }
+.track { position: relative; display: flex; justify-content: space-around; padding-top: 34px; }
+.track::before { content: ""; position: absolute; left: 0; right: 0; top: 44px; height: 12px; background: var(--lc); }
+.stn { position: relative; display: flex; flex-direction: column; align-items: center; text-decoration: none; min-width: 44px; max-width: 33%; flex: 1; text-align: center; }
+.stn .dot { width: 32px; height: 32px; border-radius: 50%; background: var(--w); border: 6px solid var(--k); box-shadow: 0 0 0 3px var(--w); position: relative; z-index: 1; }
+.stn.match .dot { background: var(--y); }
+.stn .scode { position: absolute; top: -32px; font-weight: 900; font-size: 15px; background: var(--lc); color: var(--w); padding: 2px 5px 0; }
+.stn .slbl { margin-top: 6px; font-weight: 750; font-size: 15px; line-height: 1.2; }
+.stn.match .slbl { color: var(--y); }
+.stn .lm { display: inline-flex; align-items: center; gap: 2px; margin-top: 4px; color: var(--y); }
+.stn .lm svg.pg { width: 22px; height: 22px; stroke-width: 5; }
+.net .legend-k { color: #E6E6E6; margin-top: 18px; }
+.swatch { display: inline-block; width: 22px; height: 10px; background: var(--lc); }
+.ydot { display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: var(--y); border: 4px solid var(--w); }
+.notices { margin: 18px 16px 0; border: 4px solid var(--k); }
+.notices h3 { margin: 0; background: var(--k); color: var(--w); font-size: 16px; letter-spacing: .06em; text-transform: uppercase; padding: 8px 10px 5px; }
+.notices ul { margin: 0; padding: 10px 12px 10px 30px; font-size: 16px; }
+.notices li { margin: 4px 0; }
+
+/* restaurant */
+.station { background: var(--lc); color: var(--w); padding: 16px 16px 18px; }
+.station .top { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 15px; letter-spacing: .06em; text-transform: uppercase; }
+.station .bigcode { display: grid; place-items: center; width: 64px; height: 64px; background: var(--w); color: var(--lc); font-weight: 900; font-size: 30px; padding-top: 5px; flex: none; }
+.station h1 { margin: 12px 0 0; font-weight: 850; font-size: 31px; line-height: 1.05; letter-spacing: -.012em; }
+.station .sub { margin: 4px 0 0; font-weight: 650; font-size: 17px; }
+.station .zh { display: block; font-size: 22px; font-weight: 600; margin-top: 6px; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 16px 0; }
+.fact { display: inline-flex; align-items: center; gap: 8px; border: 3px solid var(--k); padding: 4px 10px 0 6px; min-height: 44px; font-weight: 750; font-size: 16px; }
+.fact svg.pg { margin-top: -4px; width: 28px; height: 28px; }
+.fact.u { border-style: dashed; color: #444; }
+.plate {
+  display: block; width: calc(100% - 32px); margin: 16px 16px 0; text-align: left; background: var(--plate); color: var(--w);
+  padding: 8px; border-radius: 6px;
+}
+.plate-in { display: block; border: 3px solid var(--w); border-radius: 3px; padding: 10px 12px 12px; }
+.plate .lab { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 800; font-size: 15px; letter-spacing: .06em; text-transform: uppercase; }
+.plate .lab span { display: inline-flex; align-items: center; gap: 8px; }
+.plate .zh { display: block; font-size: 30px; line-height: 1.3; font-weight: 700; margin: 10px 0 6px; letter-spacing: .02em; }
+.plate .en { display: block; font-size: 16px; font-weight: 600; border-top: 2px solid rgba(255,255,255,.6); padding-top: 6px; }
+.pnote { margin: 8px 16px 0; font-size: 16px; color: var(--g); }
+.signs { display: grid; gap: 8px; padding: 16px 16px 0; }
+.sign { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 4px 14px 0; text-decoration: none; font-weight: 850; font-size: 21px; background: var(--k); color: var(--w); text-align: left; width: 100%; }
+.sign.y { background: var(--y); color: var(--k); }
+.sign.y:active { background: var(--k); color: var(--y); }
+.sign .grow { flex: 1; }
+.sign small { display: block; font-size: 15px; font-weight: 650; }
+.sign[aria-disabled="true"] { background: var(--soft); color: #3A3A3A; }
+.yourfit { padding: 14px 16px 0; }
+.yourfit .label { font-size: 15px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; margin: 0 0 6px; }
+.yourfit .meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.info { margin: 16px 16px 0; background: var(--k); color: var(--w); padding: 14px 14px 16px; }
+.info-h { display: flex; align-items: center; gap: 10px; }
+.info-h h2 { margin: 0; flex: 1; font-size: 22px; font-weight: 850; line-height: 1.1; }
+.info-h .zh { font-weight: 600; }
+.info .x { width: 48px; height: 48px; display: grid; place-items: center; }
+.info .demo { color: #DADADA; }
+.qs { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.qs a { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 4px 10px 0; border: 3px solid var(--w); text-decoration: none; font-weight: 800; font-size: 16px; line-height: 1.15; }
+.qs a .qn { font-weight: 900; color: var(--y); }
+.qs a[aria-current="true"] { background: var(--y); color: var(--k); border-color: var(--y); }
+.qs a[aria-current="true"] .qn { color: var(--k); }
+.ans { margin: 14px 0 0; background: var(--w); color: var(--k); padding: 12px 12px 10px; }
+.ans h3 { margin: 0 0 6px; font-size: 19px; font-weight: 850; }
+.ans p { margin: 0 0 8px; }
+.ans dl { margin: 0; }
+.ans dt { font-weight: 850; margin-top: 8px; }
+.ans dd { margin: 0; }
+.ans .from { font-size: 16px; color: var(--g); }
+.ans .warn { padding: 8px 10px 6px; display: flex; gap: 8px; font-size: 16px; }
+.ans .warn svg.pg { width: 24px; height: 24px; }
+.blocks { padding: 4px 16px 0; }
+.blk { display: grid; grid-template-columns: 52px 1fr; gap: 12px; padding: 18px 0 16px; border-bottom: 4px solid var(--k); }
+.blk:last-child { border-bottom: 0; }
+.blk h2 { margin: 6px 0 6px; font-size: 21px; font-weight: 850; line-height: 1.15; }
+.blk p { margin: 0; }
+.dishes { list-style: none; margin: 0; padding: 0; }
+.dishes li { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 8px 0; border-top: 2px solid #BDBDB6; }
+.dishes li:first-child { border-top: 0; }
+.dishes .zh { display: block; font-size: 21px; font-weight: 700; }
+.dishes .en { font-size: 16px; font-weight: 600; }
+.src { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+.src svg.pg { width: 26px; height: 26px; stroke-width: 4; }
+.one { color: #555; }
+.dlink { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; min-height: 44px; font-weight: 800; font-size: 16px; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.muted { color: var(--g); font-size: 16px; }
+.srcs { font-size: 16px; color: var(--g); margin: 10px 0 0; }
+
+/* order */
+.mini { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--lc); color: var(--w); }
+.mini b { font-weight: 850; font-size: 19px; line-height: 1.1; display: block; }
+.mini .code { background: var(--w); color: var(--lc); }
+.party { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.party a { display: grid; place-items: center; min-height: 60px; border: 4px solid var(--k); text-decoration: none; font-weight: 900; font-size: 28px; padding-top: 4px; }
+.party a[aria-current="true"] { background: var(--k); color: var(--y); }
+.needs { display: grid; gap: 8px; }
+.need { display: flex; align-items: center; gap: 12px; min-height: 60px; border: 4px solid var(--k); padding: 4px 12px 0; text-decoration: none; font-weight: 800; font-size: 19px; }
+.need .grow { flex: 1; }
+.need .box { width: 30px; height: 30px; border: 4px solid var(--k); display: grid; place-items: center; margin-top: -4px; }
+.need[aria-pressed="true"] { background: var(--k); color: var(--w); }
+.need[aria-pressed="true"] .box { background: var(--y); border-color: var(--y); color: var(--k); }
+.need[aria-pressed="true"] .no { background: var(--w); border-radius: 50%; }
+.olist { list-style: none; margin: 0; padding: 0; border-top: 4px solid var(--k); }
+.olist li { display: grid; grid-template-columns: 52px 1fr; gap: 12px; padding: 12px 0; border-bottom: 4px solid var(--k); }
+.olist .num { width: 44px; height: 44px; font-size: 26px; }
+.olist .zh { font-size: 26px; font-weight: 800; }
+.olist .qz { font-size: 22px; font-weight: 800; margin-left: 8px; }
+.olist .en { display: block; font-weight: 800; }
+.olist p { margin: 4px 0 0; font-size: 16px; }
+.olist .ask .num { background: var(--w); color: var(--k); border: 4px solid var(--k); }
+.sub-h { font-size: 15px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; margin: 16px 0 6px; }
+.outl { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+
+/* card */
+.card { max-width: 430px; margin: 0 auto; min-height: 100vh; background: var(--w); }
+.cband { display: flex; align-items: center; gap: 8px; background: var(--y); color: var(--k); padding: calc(4px + var(--safe-t)) 10px 4px 4px; min-height: 56px; }
+.cband .arrow { width: 48px; height: 48px; display: grid; place-items: center; }
+.cband .t { flex: 1; font-weight: 850; font-size: 17px; line-height: 1.15; }
+.cband .t small { display: block; font-weight: 650; font-size: 14px; }
+.cz { padding: 1.4vh 18px 1vh; }
+.cz .g { font-size: min(22px, 3.3vh); font-weight: 600; margin: 0 0 1vh; }
+.cz ol { list-style: none; margin: 0 0 1.2vh; padding: 0; border-top: 5px solid var(--k); border-bottom: 5px solid var(--k); }
+.cz ol li { display: flex; align-items: center; gap: 12px; padding: .8vh 0; font-size: min(32px, 4.6vh); font-weight: 800; line-height: 1.2; }
+.cz ol li + li { border-top: 2px solid var(--k); }
+.cz ol .n { width: 1.4em; height: 1.4em; font-size: .7em; background: var(--k); color: var(--w); display: grid; place-items: center; flex: none; font-family: "Overpass", sans-serif; font-weight: 900; padding-top: .12em; }
+.cz .st { font-size: min(32px, 4.7vh); font-weight: 800; line-height: 1.25; margin: 0 0 1vh; }
+.cz .s2 { font-size: min(21px, 3.1vh); font-weight: 500; line-height: 1.45; margin: 0 0 .7vh; }
+.cz .cl { font-size: min(24px, 3.5vh); font-weight: 700; margin: 1vh 0 0; }
+.cswitch { display: flex; gap: 6px; padding: 8px 18px 0; }
+.cswitch a { flex: 1; min-height: 48px; display: grid; place-items: center; border: 3px solid var(--k); text-decoration: none; font-weight: 800; font-size: 16px; padding-top: 3px; }
+.cswitch a[aria-current="true"] { background: var(--k); color: var(--y); }
+.gloss { margin: 8px 0 0; background: var(--soft); padding: 16px 18px calc(24px + var(--safe-b)); border-top: 6px solid var(--k); }
+.gloss h2 { margin: 0 0 8px; font-size: 21px; font-weight: 850; display: flex; align-items: center; gap: 8px; }
+.gloss p, .gloss li { font-size: 17px; margin: 0 0 8px; }
+.gloss ol { padding-left: 1.3em; margin: 0 0 8px; }
+.gloss .warn { padding: 10px 12px 8px; display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; }
+.gloss .warn svg.pg { width: 28px; height: 28px; }
+
+/* driver overlay */
+.overlay { position: fixed; inset: 0; z-index: 50; background: var(--plate); color: var(--w); display: flex; flex-direction: column; justify-content: center; padding: 20px 18px calc(20px + var(--safe-b)); }
+.overlay .in { max-width: 430px; margin: 0 auto; width: 100%; border: 4px solid var(--w); border-radius: 6px; padding: 18px 16px; }
+.overlay .zh { font-size: clamp(36px, 11.5vw, 50px); line-height: 1.3; font-weight: 700; display: block; }
+.overlay p { margin: 0 0 12px; font-weight: 700; }
+.overlay .close { position: absolute; top: calc(10px + var(--safe-t)); right: 10px; width: 52px; height: 52px; display: grid; place-items: center; border: 3px solid var(--w); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+@media (max-width: 350px) {
+  .band .wm { font-size: 17px; }
+  .band .wm small { font-size: 12px; }
+  .band .tile { width: 38px; height: 38px; }
+  .band .arrow { width: 44px; }
+  .proto { font-size: 12px; }
+  .route .stop { font-size: 12px; }
+  .lrow { grid-template-columns: 64px 1fr; }
+  .qs { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="overlay"></div>
+<script src="data.js"></script>
+<script>
+(function () {
+'use strict';
+/* ---------- core rules (a short re-implementation of form-test/proto.js; data only from data.js) ---------- */
+var P = window.PROTO;
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function zh(t, cls) { return '<span class="zh' + (cls ? ' ' + cls : '') + '" lang="zh-Hans">' + esc(t) + '</span>'; }
+function byId(id) { for (var i = 0; i < P.restaurants.length; i++) if (P.restaurants[i].id === id) return P.restaurants[i]; return null; }
+var PRICE = { budget: '¥ Budget', mid: '¥¥ Mid' };
+var CUISINE = { duck: 'Peking duck', noodles: 'Noodles', dumplings: 'Dumplings', hotpot: 'Hotpot', snacks: 'Breakfast & snacks' };
+var ALG = { peanut: 'peanut', tree_nut: 'tree nuts', sesame: 'sesame', gluten: 'gluten', soy: 'soy', shellfish: 'shellfish', fish: 'fish', egg: 'egg', dairy: 'dairy' };
+var DIETNOTE = { pork: 'contains pork', high_fat: 'rich and fatty', organ_meat: 'organ meat', msg_common: 'MSG common' };
+var DIVERGE = { fermented_or_pungent: 'strong smell, fermented', texture: 'unfamiliar texture' };
+var FIRST = { crowd_pleaser: 'a crowd pleaser', approachable: 'approachable', adventurous: 'adventurous', challenging: 'challenging' };
+var PRESENCE = { always: 'always', common: 'common', varies: 'sometimes' };
+var PREFILL = 'Two of us staying near the Forbidden City, one doesn’t eat pork. We want Peking duck or noodles, mid-range.';
+
+var OPTS = [
+  { k: 'diet', v: 'no-pork', label: 'No pork' },
+  { k: 'diet', v: 'peanut', label: 'Peanut allergy' },
+  { k: 'diet', v: 'sesame', label: 'Sesame allergy' },
+  { k: 'area', v: 'fc', label: 'Near the Forbidden City' },
+  { k: 'area', v: 'dongcheng', label: 'Dongcheng' },
+  { k: 'area', v: 'xicheng', label: 'Xicheng' },
+  { k: 'area', v: 'chaoyang', label: 'Chaoyang' },
+  { k: 'cuisine', v: 'duck', label: 'Peking duck' },
+  { k: 'cuisine', v: 'noodles', label: 'Noodles' },
+  { k: 'cuisine', v: 'dumplings', label: 'Dumplings' },
+  { k: 'cuisine', v: 'hotpot', label: 'Hotpot' },
+  { k: 'cuisine', v: 'snacks', label: 'Breakfast & snacks' },
+  { k: 'price', v: 'budget', label: '¥ Budget' },
+  { k: 'price', v: 'mid', label: '¥¥ Mid' }
+];
+var OPT = {};
+OPTS.forEach(function (o) { OPT[o.v] = o; });
+var GROUP_LABEL = { diet: 'Can’t eat', area: 'Area', cuisine: 'Food', price: 'Price' };
+
+var RULES = [
+  [/\bpork\b|\bpig\b|halal|muslim|清真/, 'no-pork'],
+  [/peanut/, 'peanut'],
+  [/sesame/, 'sesame'],
+  [/forbidden city|palace|gugong|故宫|tiananmen/, 'fc'],
+  [/dongcheng|东城/, 'dongcheng'],
+  [/xicheng|西城/, 'xicheng'],
+  [/chaoyang|sanlitun|朝阳/, 'chaoyang'],
+  [/\bduck\b|peking|kaoya|烤鸭/, 'duck'],
+  [/noodle|\bmian\b|面/, 'noodles'],
+  [/dumpling|jiaozi|饺子/, 'dumplings'],
+  [/hot ?pot|mutton|lamb|火锅/, 'hotpot'],
+  [/breakfast|snack|douzhi/, 'snacks'],
+  [/\bmid\b|mid-range|moderate|not too expensive/, 'mid'],
+  [/cheap|inexpensive|\bbudget\b/, 'budget']
+];
+var NUM = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
+function parseSentence(s) {
+  var t = String(s || '').toLowerCase().replace(/’/g, "'");
+  var chips = [], hits = [];
+  RULES.forEach(function (rule) {
+    var m = t.match(rule[0]);
+    if (!m) return;
+    if (rule[1] === 'budget' && /mid[ -]budget/.test(t)) return;
+    if (chips.indexOf(rule[1]) < 0) { chips.push(rule[1]); hits.push([m[0], OPT[rule[1]].label]); }
+  });
+  var party = null;
+  var pm = t.match(/\b(one|two|three|four|five|six|[1-6])\b (of us|people|adults|friends)/);
+  if (pm) party = NUM[pm[1]] || Number(pm[1]);
+  else if (/\b(just me|solo|alone|by myself)\b/.test(t)) party = 1;
+  return { chips: chips, party: party, hits: hits };
+}
+function groups(chips) {
+  var g = { diet: [], area: [], cuisine: [], price: [] };
+  chips.forEach(function (v) { if (OPT[v]) g[OPT[v].k].push(v); });
+  return g;
+}
+function splitName(n) {
+  var i = n.indexOf(' (');
+  return i < 0 ? { main: n, sub: '' } : { main: n.slice(0, i), sub: n.slice(i + 2, n.length - 1) };
+}
+function shortDish(d) { return d.nameEn.replace(/ \(.*\)$/, ''); }
+function verifiedDishes(r) { return r.dishes.filter(function (d) { return d.verified; }); }
+function singleDishes(r) { return r.dishes.filter(function (d) { return !d.verified; }); }
+function libDishes(r) { return r.dishes.filter(function (d) { return d.verified && d.slug && P.dishes[d.slug]; }); }
+function hasPork(d) {
+  if (d.slug && P.dishes[d.slug]) return P.dishes[d.slug].dietaryNotes.indexOf('pork') >= 0;
+  return d.nameZh.indexOf('猪肉') >= 0;
+}
+function allergenOf(slug, a) {
+  return (P.dishes[slug].allergens.filter(function (x) { return x.allergen === a; })[0]) || null;
+}
+function listJoin(a) { return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
+var UNCONFIRMED = [['hours', 'hours'], ['priceBand', 'price band'], ['spendPerHead', 'spend per head'], ['ordering', 'how to order'], ['payment', 'payment'], ['englishMenu', 'English menu']];
+function notConfirmed(r) {
+  return UNCONFIRMED.filter(function (f) { return r[f[0]] == null; }).map(function (f) { return f[1]; });
+}
+function fmtDate(iso) {
+  if (!iso) return 'undated';
+  var m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var p = iso.split('-');
+  return Number(p[2]) + ' ' + m[Number(p[1]) - 1] + ' ' + p[0];
+}
+function sourceNames(r) { return r.sources.map(function (s) { return s.name; }); }
+
+/* one line per dietary need, conditional wording only */
+function dietLine(r, v) {
+  var ver = verifiedDishes(r), lib = libDishes(r);
+  var noLib = ver.filter(function (d) { return !d.slug; });
+  if (v === 'no-pork') {
+    if (r.halalSignage === true) return { tone: 'cue', text: zh('清真') + ' (halal) is in the shop name: a strong cue, not a certification. The no-pork card still applies.' };
+    if (r.onlyDishPork) return { tone: 'clash', text: 'Its only dish is pork-based, and none of our sources mentions a pork-free version.' };
+    var pork = ver.filter(hasPork);
+    if (pork.length) return { tone: 'ask', text: esc(listJoin(pork.map(shortDish))) + ' typically contains pork; fillings vary, so ask about each one.' };
+    if (noLib.length) return { tone: 'ask', text: 'Some dishes here have no dish notes yet, so pork cannot be ruled out. Ask with the card.' };
+    return { tone: 'ask', text: 'Our dish notes list no pork in ' + esc(listJoin(lib.map(shortDish))) + '. Kitchens vary, so ask with the card.' };
+  }
+  var name = ALG[v];
+  var hit = [];
+  lib.forEach(function (d) { var x = allergenOf(d.slug, v); if (x) hit.push([d, x]); });
+  var desc = noLib.filter(function (d) { return new RegExp(v, 'i').test(d.note || '') || new RegExp(v, 'i').test(d.nameEn); });
+  if (hit.some(function (h) { return h[1].presence === 'always'; })) return { tone: 'clash', text: esc(cap(name)) + ' is always in the typical preparation of ' + esc(listJoin(hit.map(function (h) { return shortDish(h[0]); }))) + '.' };
+  if (desc.length) return { tone: 'clash', text: esc(listJoin(desc.map(shortDish))) + ' carries ' + esc(name) + ', per the source description. Ask about the rest.' };
+  if (hit.length) return { tone: 'ask', text: esc(cap(name)) + ' can appear in ' + esc(listJoin(hit.map(function (h) { return shortDish(h[0]); }))) + ' (' + esc(PRESENCE[hit[0][1].presence]) + ', typical preparation). Ask with the card.' };
+  if (lib.length && !noLib.length) return { tone: 'ask', text: esc(cap(name)) + ' is not in our typical-preparation notes for ' + esc(listJoin(lib.map(shortDish))) + '. Confirm with the card.' };
+  if (lib.length) return { tone: 'ask', text: esc(cap(name)) + ' is not in our notes for ' + esc(listJoin(lib.map(shortDish))) + '; other dishes have no notes. Ask with the card.' };
+  return { tone: 'ask', text: 'No allergen notes on file for these dishes. Ask with the card.' };
+}
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function evaluate(r, chips) {
+  var g = groups(chips);
+  var e = { fits: [], misses: [], unknown: [], diet: [], clash: false, score: 0 };
+  if (g.area.length) {
+    var a = g.area.filter(function (v) { return v === 'fc' ? r.nearForbiddenCity === true : r.district === v; });
+    if (a.length) { e.fits.push(OPT[a[0]].label); e.score += 1; } else e.misses.push(g.area.map(function (v) { return OPT[v].label; }).join(' or '));
+  }
+  if (g.cuisine.length) {
+    var c = g.cuisine.filter(function (v) { return r.cuisines.indexOf(v) >= 0; });
+    if (c.length) { e.fits.push(OPT[c[0]].label); e.score += 2; } else e.misses.push(g.cuisine.map(function (v) { return OPT[v].label; }).join(' or '));
+  }
+  if (g.price.length) {
+    if (!r.priceBand) e.unknown.push('Price band not confirmed');
+    else if (g.price.indexOf(r.priceBand) >= 0) { e.fits.push(PRICE[r.priceBand]); e.score += 1; }
+    else e.misses.push(g.price.map(function (v) { return OPT[v].label; }).join(' or '));
+  }
+  g.diet.forEach(function (v) {
+    var l = dietLine(r, v); l.label = OPT[v].label; l.v = v;
+    e.diet.push(l);
+    if (l.tone === 'clash') { e.clash = true; e.score -= 3; }
+  });
+  e.full = chips.length > 0 && !e.misses.length && !e.clash && !e.unknown.length;
+  return e;
+}
+function ranked(chips) {
+  return P.restaurants.map(function (r, i) { return { r: r, e: evaluate(r, chips), i: i }; })
+    .sort(function (a, b) { return (b.e.score - a.e.score) || (a.i - b.i); });
+}
+
+/* Build my order: only verified dishes from this restaurant; quantities only where the dish notes give one */
+function quantity(d, party) {
+  if (d.slug === 'peking-duck') {
+    if (party <= 3) return { zh: '半只', en: 'Half a duck (半只). The dish notes say proper roast duck houses sell half ducks to small groups.' };
+    return { zh: '', en: 'Our notes only cover half ducks for small groups; ask staff how much to order for ' + party + '.' };
+  }
+  if (d.slug === 'jiaozi') return { zh: (2 * party) + '–' + (3 * party) + '两', en: 'About ' + (2 * party) + ' to ' + (3 * party) + ' liang (两) for ' + party + '. The dish notes say a normal solo order is two or three liang.' };
+  return { zh: '', en: 'Portion size is not in our notes; staff can advise.' };
+}
+function buildOrder(r, party, diet) {
+  var order = [], ask = [], out = [];
+  verifiedDishes(r).forEach(function (d) {
+    var lib = d.slug ? P.dishes[d.slug] : null;
+    var exclude = null, askFirst = null;
+    if (diet.indexOf('no-pork') >= 0) {
+      if (r.onlyDishPork && lib && lib.dietaryNotes.indexOf('pork') >= 0) exclude = 'Pork-based sauce; none of our sources mentions a pork-free version.';
+      else if (lib && lib.dietaryNotes.indexOf('pork') >= 0) askFirst = 'Typically contains pork. Fillings vary, so ask for a non-pork one.';
+      else if (!lib && hasPork(d)) exclude = 'Pork in the name (猪肉).';
+      else if (!lib) askFirst = 'No dish notes on file, so pork cannot be ruled out. Ask.';
+    }
+    ['peanut', 'sesame'].forEach(function (a) {
+      if (diet.indexOf(a) < 0) return;
+      if (lib) {
+        var x = allergenOf(d.slug, a);
+        if (x && x.presence === 'always') exclude = exclude || cap(ALG[a]) + ' is always in the typical preparation.';
+        else if (x) askFirst = askFirst || cap(ALG[a]) + ' ' + (x.presence === 'varies' ? 'sometimes appears' : 'is common') + ': ' + x.note;
+      } else if (new RegExp(a, 'i').test(d.note || '')) exclude = exclude || cap(ALG[a]) + ', per the source description.';
+      else askFirst = askFirst || 'No allergen notes on file for this dish. Ask with the card.';
+    });
+    var typical = lib ? lib.allergens.filter(function (x) { return diet.indexOf(x.allergen) < 0; }).map(function (x) { return ALG[x.allergen] + ' (' + PRESENCE[x.presence] + ')'; }) : [];
+    var item = { d: d, lib: lib, qty: quantity(d, party), typical: typical, why: askFirst };
+    if (exclude) out.push({ d: d, why: exclude });
+    else if (askFirst) ask.push(item);
+    else order.push(item);
+  });
+  return { order: order, ask: ask, out: out, single: singleDishes(r), cards: diet.filter(function (x) { return P.cards[x]; }), party: party };
+}
+function cardModel(o, cardId) {
+  var items = o.order.concat(o.ask);
+  var c = cardId ? P.cards[cardId] : null;
+  var zhLines = [], enLines = [];
+  return {
+    greeting: P.cardGreeting,
+    closing: P.cardClosing,
+    items: items.map(function (it) { return { zh: it.d.nameZh, qzh: it.qty.zh, en: it.d.nameEn, qen: it.qty.zh ? it.qty.en : '' }; }),
+    card: c,
+    body: c ? [c.statement, c.avoid, c.crossContact, c.askAlternative] : []
+  };
+}
+
+/* Ask about this dish: answers come only from PROTO.dishes[slug] */
+var ASK_TOPICS = [['what', 'What is it?'], ['how', 'How do I eat it?'], ['allergens', 'Allergens?'], ['spice', 'Is it spicy?']];
+function sentences(text) { return (text.match(/[^.!?]+[.!?]+/g) || [text]).map(function (s) { return s.trim(); }); }
+function askAnswer(slug, topic) {
+  var d = P.dishes[slug];
+  var a = { q: '', paras: [], items: [], caution: '' };
+  var body = sentences(d.body.join(' '));
+  if (topic === 'what') {
+    a.q = 'What is it?';
+    a.paras = body.slice(0, 2);
+    if (d.firstTimer) a.items.push({ label: 'For a first try', text: 'Our dish notes call it ' + FIRST[d.firstTimer] + '.' });
+  } else if (topic === 'how') {
+    a.q = 'How do I eat it?';
+    a.paras = [d.howToEat];
+  } else if (topic === 'allergens') {
+    a.q = 'What allergens does it have?';
+    a.items = d.allergens.map(function (x) { return { label: cap(ALG[x.allergen]) + ', ' + PRESENCE[x.presence], text: x.note }; });
+    d.dietaryNotes.forEach(function (n) { a.items.push({ label: 'Also', text: cap(DIETNOTE[n] || n) + '.' }); });
+    a.caution = 'This describes the typical preparation, not this kitchen. Ask staff to confirm; the card asks in Chinese.';
+  } else {
+    a.q = 'Is it spicy?';
+    a.paras = [d.spiceLevel === 0 ? 'Our dish notes mark the typical preparation as not spicy.' : 'Our dish notes give the typical preparation some heat.'];
+    sentences(d.howToEat).concat(body).filter(function (s) { return /spic|chil/i.test(s); }).forEach(function (s) { a.paras.push(s); });
+    d.divergence.forEach(function (n) { a.items.push({ label: 'Heads up', text: cap(DIVERGE[n] || n) + '.' }); });
+    d.cautiousAlternatives.forEach(function (s) { if (P.dishes[s]) a.items.push({ label: 'Gentler option', text: P.dishes[s].nameEn + ' (' + P.dishes[s].nameZh + ')' }); });
+  }
+  return a;
+}
+function parseHash() {
+  var h = (location.hash || '#/').slice(1);
+  var qi = h.indexOf('?');
+  var path = qi < 0 ? h : h.slice(0, qi);
+  var q = {};
+  if (qi >= 0) h.slice(qi + 1).split('&').forEach(function (kv) { var p = kv.split('='); if (p[0]) q[p[0]] = decodeURIComponent(p[1] || ''); });
+  return { parts: path.split('/').filter(Boolean), q: q };
+}
+var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* ---------- end core ---------- */
+
+
+/* ---------- pictogram family: 48 x 48 grid, stroke 4, round ends ---------- */
+var PG = {
+  duck: '<path d="M6 28c0-6 6-8 14-8 6 0 10 1 13 4l1-12c0-4 2-6 5-6s5 2 5 5l3 1-3 2c-2 1-4 2-4 5v9c0 7-6 11-15 11h-6C10 39 6 35 6 28z"/><path d="M14 29c5 3 11 3 16 0"/><circle class="f" cx="39.5" cy="10" r="1.8"/>',
+  noodles: '<path d="M6 24h36c0 9-8 16-18 16S6 33 6 24z"/><path d="M18 43h12"/><path d="M12 24c0-4 3-4 3 0s3 4 3 0 3-4 3 0"/><path d="M27 18L41 4M31 21L45 8"/>',
+  dumplings: '<path d="M6 33c0-12 8-20 18-20s18 8 18 20c-6 4-30 4-36 0z"/><path d="M16 16l2 6M24 13v8M32 16l-2 6"/><path d="M4 42h40"/>',
+  hotpot: '<path d="M20 6h8v14h-8z"/><path d="M5 20h38"/><path d="M8 20c0 10 7 16 16 16s16-6 16-16"/><path d="M17 36l-2 6h18l-2-6"/><path d="M5 25H2M43 25h3"/>',
+  snacks: '<path d="M4 22h26c0 8-6 14-13 14S4 30 4 22z"/><path d="M11 40h12"/><path d="M12 16c-2-3 2-5 0-8M21 16c-2-3 2-5 0-8"/><circle cx="38" cy="30" r="6"/>',
+  gate: '<path d="M4 16h40l-8-8H12z"/><path d="M8 21h32"/><path d="M12 21v20M36 21v20"/><path d="M20 41V30h8v11"/><path d="M4 42h40"/>',
+  taxi: '<path d="M6 32v-7l5-10h26l5 10v7z"/><path d="M13 25l3-6h16l3 6"/><circle cx="14" cy="35" r="4"/><circle cx="34" cy="35" r="4"/><path d="M20 15v-5h8v5"/>',
+  people: '<circle cx="16" cy="12" r="5"/><path d="M7 41v-9c0-6 4-10 9-10s9 4 9 10v9"/><circle cx="33" cy="14" r="4.5"/><path d="M29 22c1-.3 2-.5 4-.5 4 0 8 4 8 9v10.5"/>',
+  pig: '<path d="M9 25c0-9 7-14 15-14s15 5 15 14-7 13-15 13S9 34 9 25z"/><rect x="31" y="21" width="10" height="9" rx="3"/><path d="M14 13l-2-6 7 3M30 10l5-4 0 7"/><circle class="f" cx="22" cy="21" r="1.8"/>',
+  ring: '<circle cx="24" cy="24" r="21"/><path d="M9.2 9.2l29.6 29.6"/>',
+  peanut: '<path d="M24 4c6 0 9 5 8 10-1 4-4 6-4 10s3 6 4 10c1 5-2 10-8 10s-9-5-8-10c1-4 4-6 4-10s-3-6-4-10c-1-5 2-10 8-10z"/><path d="M20 14h8M20 34h8"/>',
+  sesame: '<path d="M14 34c-4-5-4-12 0-16 4 4 4 11 0 16z"/><path d="M28 24c-4-5-4-12 0-16 4 4 4 11 0 16z"/><path d="M33 42c-4-5-4-12 0-16 4 4 4 11 0 16z"/>',
+  yen: '<path d="M13 6l11 15L35 6M24 21v21M14 25h20M14 32h20"/>',
+  card: '<rect x="12" y="5" width="30" height="21" rx="2"/><path d="M18 12h18M18 19h12"/><path d="M5 44v-7c0-5 4-9 9-9h12c3 0 3 5 0 5h-7"/>',
+  info: '<circle cx="24" cy="24" r="19"/><path d="M24 22v13"/><circle class="f" cx="24" cy="14.5" r="2.6"/>',
+  q: '<circle cx="24" cy="24" r="19"/><path d="M18 19c0-4 3-6 6-6s6 2 6 6c0 5-6 5-6 10"/><circle class="f" cx="24" cy="35" r="2.6"/>',
+  check: '<path d="M9 25l9 9 21-21"/>',
+  x: '<path d="M12 12l24 24M36 12L12 36"/>',
+  right: '<path d="M6 24h34M28 12l12 12-12 12"/>',
+  left: '<path d="M42 24H8M20 12L8 24l12 12"/>',
+  two: '<path d="M18 6h18v26"/><rect x="10" y="12" width="20" height="30" rx="2"/><path d="M15 21h10M15 28h10M15 35h6"/>',
+  one: '<rect x="13" y="7" width="22" height="34" rx="2"/><path d="M18 16h12M18 23h12M18 30h7"/>',
+  warn: '<path d="M24 5l20 36H4z"/><path d="M24 18v11"/><circle class="f" cx="24" cy="35" r="2.6"/>',
+  plus: '<path d="M24 8v32M8 24h32"/>',
+  expand: '<path d="M6 17V6h11M42 17V6H31M6 31v11h11M42 31v11H31"/>',
+  dash: '<path d="M12 24h24"/>'
+};
+function pg(n, cls, lbl) {
+  return '<svg class="pg' + (cls ? ' ' + cls : '') + '" viewBox="0 0 48 48"' + (lbl ? ' role="img" aria-label="' + esc(lbl) + '"' : ' aria-hidden="true"') + ' focusable="false">' + PG[n] + '</svg>';
+}
+function noSign(n) { return '<span class="no" aria-hidden="true">' + pg(n) + pg('ring', 'ring') + '</span>'; }
+var CUIS_PG = { duck: 'duck', noodles: 'noodles', dumplings: 'dumplings', hotpot: 'hotpot', snacks: 'snacks' };
+function chipIcon(v) {
+  if (v === 'no-pork') return noSign('pig');
+  if (v === 'peanut') return noSign('peanut');
+  if (v === 'sesame') return noSign('sesame');
+  if (v === 'fc') return pg('gate');
+  if (OPT[v].k === 'area') return '<span class="swatch" style="--lc:var(--' + v + ')" aria-hidden="true"></span>';
+  if (OPT[v].k === 'cuisine') return pg(CUIS_PG[v]);
+  return pg('yen');
+}
+
+/* station codes: a stable identifier per place, by district and data order (an interface label, not a fact) */
+var CODE = {}, SHORT = {
+  'siji-minfu-gugong': 'Siji Minfu', 'no69-fangzhuanchang': 'No. 69', 'pang-mei-noodles': 'Pang Mei',
+  'man-heng-ji': 'Man Heng Ji', 'huguosi-snacks': 'Huguosi', 'bao-yuan': 'Bao Yuan'
+};
+(function () {
+  var count = {};
+  P.restaurants.forEach(function (r) {
+    count[r.district] = (count[r.district] || 0) + 1;
+    CODE[r.id] = P.districts[r.district].nameEn.charAt(0) + count[r.district];
+  });
+})();
+function lc(r) { return '--lc:var(--' + r.district + ')'; }
+function short(r) { return SHORT[r.id] || splitName(r.nameEn).main; }
+
+/* ---------- state ---------- */
+var first = parseSentence(PREFILL);
+var S = { said: PREFILL, chips: first.chips.slice(), party: first.party || 2, submitted: false, diet: null, last: null, adding: false };
+function curDiet() { return S.diet || groups(S.chips).diet; }
+function homeHash() { return S.submitted ? '#/?chips=' + S.chips.join(',') + '&n=' + S.party : '#/'; }
+function orderHash(id, n, diet) { return '#/order/' + id + '?n=' + (n || S.party) + '&diet=' + (diet || curDiet()).join(','); }
+function cardHash(id, i) { return '#/card/' + id + '?n=' + S.party + '&diet=' + curDiet().join(',') + (i ? '&c=' + i : ''); }
+var root = document.getElementById('root');
+var overlay = document.getElementById('overlay');
+
+function band(backHref, backLabel) {
+  return '<header class="band">' +
+    (backHref ? '<a class="arrow" href="' + backHref + '" aria-label="' + esc(backLabel) + '">' + pg('left') + '</a>' : '') +
+    '<a class="home" href="' + homeHash() + '"><span class="tile">' + pg('noodles') + '</span><span class="wm">China Food Guide<small>Beijing 北京</small></span></a>' +
+    '<span class="proto">Prototype<br>draft data</span></header>';
+}
+function route(here, id) {
+  var stops = [['Choose', homeHash()], ['Place', id ? '#/r/' + id : ''], ['Order', id ? orderHash(id) : ''], ['Card', id ? cardHash(id) : '']];
+  return '<nav class="route" aria-label="Your route">' + stops.map(function (s, i) {
+    var cls = i + 1 < here ? 'done' : i + 1 === here ? 'here' : (s[1] ? '' : 'off');
+    var inner = '<span class="n">' + (i + 1) + '</span>' + s[0];
+    return s[1] && i + 1 !== here ? '<a class="stop ' + cls + '" href="' + s[1] + '">' + inner + '</a>' : '<span class="stop ' + cls + '"' + (i + 1 === here ? ' aria-current="step"' : '') + '>' + inner + '</span>';
+  }).join('') + '</nav>';
+}
+function fitsHtml(e) {
+  return e.fits.map(function (f) { return '<span class="fit y">' + pg('check') + esc(f) + '</span>'; }).join('') +
+    e.unknown.map(function (f) { return '<span class="fit u">' + pg('dash') + esc(f) + '</span>'; }).join('') +
+    (e.misses.length ? '<span class="nots">Not: ' + esc(e.misses.join(', ')) + '</span>' : '');
+}
+function dietHtml(e) {
+  return e.diet.map(function (d) {
+    return '<p class="dl ' + d.tone + '">' + pg(d.tone === 'clash' ? 'warn' : d.tone === 'cue' ? 'info' : 'q') + '<span><b>' + esc(d.label) + ':</b> ' + d.text + '</span></p>';
+  }).join('');
+}
+
+/* ---------- 1. choose ---------- */
+function homeView() {
+  var h = band() + route(1, S.last);
+  h += '<section class="sec"><div class="step"><span class="num">1</span><h2>Say what you need</h2></div>' +
+    '<form id="sayf"><label class="sr" for="say" style="position:absolute;left:-9999px">Describe your meal</label><textarea class="say" id="say" rows="4" spellcheck="false">' + esc(S.said) + '</textarea>' +
+    '<button class="go" type="submit" data-act="parse">Make filters ' + pg('right') + '</button></form>' +
+    '<p class="demo">Scripted demo: keyword rules read the sentence, no model connected.</p></section>';
+  if (S.submitted) {
+    var g = groups(S.chips);
+    h += '<section class="sec"><div class="step"><span class="num">2</span><h2>Check your filters</h2></div>' +
+      '<div class="tokens">' + S.chips.map(function (v) {
+        return '<button class="tok" data-act="rm" data-v="' + v + '" aria-label="Remove filter: ' + esc(OPT[v].label) + '">' + chipIcon(v) + esc(OPT[v].label) + '<span class="x">' + pg('x') + '</span></button>';
+      }).join('') + '<button class="tok add" data-act="add" aria-expanded="' + S.adding + '">' + pg('plus') + (S.adding ? 'Close' : 'Add') + '</button></div>' +
+      (S.adding ? addPanel() : '') +
+      '<ul class="legend-k" aria-label="Key"><li>' + noSign('pig') + 'Can’t eat</li><li>' + pg('gate') + 'Near the Forbidden City</li><li>' + pg('yen') + 'Price band</li></ul></section>';
+    var rk = ranked(S.chips);
+    var full = rk.filter(function (x) { return x.e.full; });
+    h += '<section class="sec"><div class="step"><span class="num">3</span><h2>Pick a place</h2><button class="tok" data-act="net" style="margin-left:auto" aria-label="Jump to the network schematic">' + pg('gate') + 'Network</button></div><ul class="rows">' +
+      rk.map(function (x, i) {
+        var div = (i === full.length && full.length) ? '<li class="divider">Fits some of your filters</li>' : '';
+        return div + '<li>' + rowHtml(x.r, x.e) + '</li>';
+      }).join('') + '</ul></section>';
+  } else {
+    h += '<section class="sec"><div class="step"><span class="num">2</span><h2>Or browse the six places</h2></div><ul class="rows">' +
+      P.restaurants.map(function (r) { return '<li>' + rowHtml(r, null) + '</li>'; }).join('') + '</ul></section>';
+  }
+  h += netHtml();
+  h += '<section class="notices"><h3>Service notices</h3><ul>' + P.notSourced.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul></section>';
+  return h;
+}
+function addPanel() {
+  var by = {};
+  OPTS.forEach(function (o) { (by[o.k] = by[o.k] || []).push(o); });
+  return '<div class="addpanel">' + Object.keys(by).map(function (k) {
+    return '<h3>' + esc(GROUP_LABEL[k]) + '</h3><div class="tokens">' + by[k].map(function (o) {
+      var on = S.chips.indexOf(o.v) >= 0;
+      return '<button class="tok" data-act="toggle" data-v="' + o.v + '" aria-pressed="' + on + '">' + chipIcon(o.v) + esc(o.label) + '</button>';
+    }).join('') + '</div>';
+  }).join('') + '</div>';
+}
+function rowHtml(r, e) {
+  var n = splitName(r.nameEn);
+  var best = e && e.full;
+  return '<a class="row' + (best ? ' best' : '') + '" href="#/r/' + r.id + '" style="' + lc(r) + '">' +
+    '<span class="code">' + CODE[r.id] + '</span>' +
+    '<span>' + (best ? '<span class="best-tag">Fits all filters</span>' : '') +
+    '<span class="nm">' + esc(n.main) + '</span>' + zh(r.nameZh, 'rzh') +
+    '<span class="meta">' + pg(CUIS_PG[r.cuisines[0]], '', CUISINE[r.cuisines[0]]) + esc(P.districts[r.district].nameEn) + (r.nearForbiddenCity ? ' ' + pg('gate', '', 'Near the Forbidden City') : '') + '</span>' +
+    (e && S.chips.length ? '<span class="meta">' + fitsHtml(e) + '</span>' + dietHtml(e) : '') +
+    '</span>' + pg('right') + '</a>';
+}
+function netHtml() {
+  var rk = S.submitted ? ranked(S.chips) : [];
+  var match = {};
+  rk.forEach(function (x) { if (x.e.full) match[x.r.id] = true; });
+  return '<section class="net" id="net" aria-labelledby="net-h"><h2 id="net-h">The six places, by district</h2>' +
+    '<span class="disc">Schematic, not a map, not to scale</span>' +
+    '<p>Each line is a district; each stop is a place in it. Order along a line means nothing: we have no positions, distances or directions to show.</p>' +
+    '<div class="lines">' + Object.keys(P.districts).map(function (d) {
+      var rs = P.restaurants.filter(function (r) { return r.district === d; });
+      return '<div class="lrow" style="--lc:var(--' + d + ')"><span class="lname">' + esc(P.districts[d].nameEn) + zh(P.districts[d].nameZh) + '</span><div class="track">' +
+        rs.map(function (r) {
+          return '<a class="stn' + (match[r.id] ? ' match' : '') + '" href="#/r/' + r.id + '" style="' + lc(r) + '" aria-label="' + esc(CODE[r.id] + ' ' + r.nameEn) + (match[r.id] ? ', fits all filters' : '') + '"><span class="scode">' + CODE[r.id] + '</span><span class="dot"></span><span class="slbl">' + esc(short(r)) + '</span>' +
+            (r.nearForbiddenCity ? '<span class="lm">' + pg('gate') + '</span>' : '') + '</a>';
+        }).join('') + '</div></div>';
+    }).join('') + '</div>' +
+    '<ul class="legend-k"><li><span class="swatch" style="--lc:var(--dongcheng)"></span>Dongcheng</li><li><span class="swatch" style="--lc:var(--xicheng)"></span>Xicheng</li><li><span class="swatch" style="--lc:var(--chaoyang)"></span>Chaoyang</li>' +
+    (S.submitted ? '<li><span class="ydot"></span>Fits all filters</li>' : '') + '<li>' + pg('gate') + 'Near the Forbidden City (sources)</li></ul></section>';
+}
+
+/* ---------- 2. place ---------- */
+function placeView(r, q) {
+  S.last = r.id;
+  var n = splitName(r.nameEn), e = evaluate(r, S.chips), lib = libDishes(r), nc = notConfirmed(r);
+  var h = band(homeHash(), 'Back to all places') + route(2, r.id);
+  h += '<section class="station" style="' + lc(r) + '"><div class="top"><span class="bigcode">' + CODE[r.id] + '</span><span>' + esc(P.districts[r.district].nameEn) + ' line<br>' + esc(r.areaNote) + '</span></div>' +
+    '<h1>' + esc(n.main) + '</h1>' + (n.sub ? '<p class="sub">' + esc(n.sub) + '</p>' : '') + zh(r.nameZh) + '</section>';
+  h += '<div class="facts">' + r.cuisines.map(function (c) { return '<span class="fact">' + pg(CUIS_PG[c]) + esc(CUISINE[c]) + '</span>'; }).join('') +
+    (r.priceBand ? '<span class="fact">' + pg('yen') + esc(PRICE[r.priceBand]) + '</span>' : '<span class="fact u">' + pg('yen') + 'Price band not confirmed</span>') +
+    (r.nearForbiddenCity ? '<span class="fact">' + pg('gate') + 'Near the Forbidden City</span>' : '') +
+    (r.halalSignage ? '<span class="fact">' + zh('清真') + ' in the shop name</span>' : '') + '</div>';
+  h += '<button class="plate" data-act="plate" aria-label="Show the address full screen for a taxi driver"><span class="plate-in"><span class="lab"><span>' + pg('taxi') + 'Show the driver</span>' + pg('expand') + '</span>' +
+    zh(r.addressZh) + '<span class="en">' + esc(r.addressEn) + '</span></span></button>' +
+    (r.addressPartial ? '<p class="pnote">' + esc(r.addressPartial) + '</p>' : '');
+  if (S.submitted && S.chips.length) h += '<div class="yourfit"><p class="label">Against your filters</p><div class="meta">' + fitsHtml(e) + '</div>' + dietHtml(e) + '</div>';
+  h += '<div class="signs"><a class="sign y" href="' + orderHash(r.id) + '">' + pg('people') + '<span class="grow">Build my order<small>Party size and needs in, a suggested order out</small></span>' + pg('right') + '</a>' +
+    (lib.length
+      ? '<a class="sign" href="#/r/' + r.id + '?ask=' + lib[0].slug + '&t=what" id="askbtn">' + pg('q') + '<span class="grow">Ask about this dish<small>' + esc(shortDish(lib[0])) + ', from our dish notes</small></span>' + pg('right') + '</a>'
+      : '<span class="sign" aria-disabled="true">' + pg('q') + '<span class="grow">Ask about this dish<small>No dish here has an entry in our dish notes yet</small></span></span>') + '</div>';
+  if (q.ask && P.dishes[q.ask]) h += askPanel(r, q.ask, q.t || 'what');
+  h += '<div class="blocks">' +
+    blk(1, 'Why go', '<p>' + esc(r.why) + '</p>') +
+    blk(2, 'Local view', '<p>' + esc(r.localView) + '</p>') +
+    blk(3, 'For a visitor', '<p>' + esc(r.visitorView) + '</p>') +
+    blk(4, 'Dishes', dishList(r)) +
+    blk(5, 'Not confirmed yet', '<p>' + (nc.length ? 'No two sources agree yet on: ' + esc(listJoin(nc)) + '. Check on site.' : 'Nothing outstanding.') + '</p><p class="srcs">Sources: ' + esc(sourceNames(r).join('; ')) + '. Checked ' + esc(fmtDate(r.checkedOn)) + '.</p>') +
+    '</div>';
+  return h;
+}
+function blk(n, title, body) { return '<section class="blk"><span class="num">' + n + '</span><div><h2>' + esc(title) + '</h2>' + body + '</div></section>'; }
+function dishList(r) {
+  var ver = verifiedDishes(r), one = singleDishes(r);
+  var h = '<ul class="dishes">' + ver.map(function (d) {
+    return '<li><span>' + zh(d.nameZh) + '<span class="en">' + esc(d.nameEn) + '</span>' +
+      (d.slug ? '<br><a class="dlink" href="#/r/' + r.id + '?ask=' + d.slug + '&t=what">' + pg('info') + 'Dish notes</a>' : '') + '</span>' +
+      '<span class="src">' + pg('two') + 'Two sources</span></li>';
+  }).join('') + one.map(function (d) {
+    return '<li class="one"><span>' + zh(d.nameZh) + '<span class="en">' + esc(d.nameEn) + '</span></span><span class="src">' + pg('one') + 'One source</span></li>';
+  }).join('') + '</ul>';
+  if (!libDishes(r).length) h += '<p class="muted">No dish here has an entry in our dish notes yet, so there are no allergen notes to show.</p>';
+  return h;
+}
+function askPanel(r, slug, topic) {
+  var d = P.dishes[slug], a = askAnswer(slug, topic);
+  return '<section class="info" id="ask" aria-labelledby="ask-h"><div class="info-h">' + pg('info') + '<h2 id="ask-h">Ask about ' + esc(shortDish(d)) + ' ' + zh(d.nameZh) + '</h2>' +
+    '<a class="x" href="#/r/' + r.id + '" aria-label="Close the dish questions">' + pg('x') + '</a></div>' +
+    '<p class="demo">Scripted demo: answers quote our dish notes only. No model connected.</p>' +
+    '<ul class="qs">' + ASK_TOPICS.map(function (t, i) {
+      return '<li><a href="#/r/' + r.id + '?ask=' + slug + '&t=' + t[0] + '" aria-current="' + (t[0] === topic) + '"><span class="qn">Q' + (i + 1) + '</span>' + esc(t[1]) + '</a></li>';
+    }).join('') + '</ul>' +
+    '<div class="ans" aria-live="polite"><h3>' + esc(a.q) + '</h3>' + a.paras.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') +
+    (a.items.length ? '<dl>' + a.items.map(function (it) { return '<dt>' + esc(it.label) + '</dt><dd>' + esc(it.text) + '</dd>'; }).join('') + '</dl>' : '') +
+    (a.caution ? '<p class="warn">' + pg('warn') + '<span>' + esc(a.caution) + '</span></p>' : '') +
+    '<p class="from">From our dish notes (draft). Typical preparation, not this kitchen.</p></div></section>';
+}
+
+/* ---------- 3. order ---------- */
+function orderView(r) {
+  S.last = r.id;
+  var diet = curDiet();
+  var o = buildOrder(r, S.party, diet);
+  var h = band('#/r/' + r.id, 'Back to ' + splitName(r.nameEn).main) + route(3, r.id);
+  h += '<div class="mini" style="' + lc(r) + '"><span class="code">' + CODE[r.id] + '</span><span><b>' + esc(splitName(r.nameEn).main) + '</b>' + zh(r.nameZh) + '</span></div>';
+  h += '<section class="sec"><div class="step"><span class="num">1</span><h2>How many people?</h2></div><div class="party" role="group" aria-label="Party size">' +
+    [1, 2, 3, 4, 5, 6].map(function (n) { return '<a href="' + orderHash(r.id, n, diet) + '" aria-current="' + (n === S.party) + '" aria-label="' + n + (n === 1 ? ' person' : ' people') + '">' + n + '</a>'; }).join('') + '</div></section>';
+  h += '<section class="sec"><div class="step"><span class="num">2</span><h2>Anything you can’t eat?</h2></div><div class="needs">' +
+    ['no-pork', 'peanut', 'sesame'].map(function (v) {
+      var on = diet.indexOf(v) >= 0;
+      var next = on ? diet.filter(function (x) { return x !== v; }) : diet.concat([v]);
+      return '<a class="need" role="button" aria-pressed="' + on + '" href="' + orderHash(r.id, S.party, next) + '">' + chipIcon(v) + '<span class="grow">' + esc(OPT[v].label) + '</span><span class="box">' + (on ? pg('check') : '') + '</span></a>';
+    }).join('') + '</div><p class="demo">Scripted demo: rules pick only from this restaurant’s verified dish list. No model connected.</p></section>';
+  h += '<section class="sec"><div class="step"><span class="num">3</span><h2>Your order</h2></div>';
+  var i = 0;
+  if (o.order.length) h += '<ol class="olist">' + o.order.map(function (it) { i++; return itemHtml(it, i, ''); }).join('') + '</ol>';
+  if (o.ask.length) h += '<p class="sub-h">Ask staff first</p><ol class="olist">' + o.ask.map(function (it) { i++; return itemHtml(it, i, 'ask'); }).join('') + '</ol>';
+  if (!o.order.length && !o.ask.length) h += '<p class="dl clash">' + pg('warn') + '<span>Nothing on this restaurant’s verified dish list fits these needs. The card still works: it asks staff to recommend dishes that do.</span></p>';
+  if (o.out.length) h += '<p class="sub-h">Left out</p><ul class="outl">' + o.out.map(function (x) { return '<li class="dl clash">' + pg('warn') + '<span>' + zh(x.d.nameZh) + ' ' + esc(x.d.nameEn) + ': ' + esc(x.why) + '</span></li>'; }).join('') + '</ul>';
+  if (o.single.length) h += '<p class="muted" style="margin-top:10px">' + o.single.length + ' more ' + (o.single.length === 1 ? 'dish is' : 'dishes are') + ' listed by one source only, so the plan leaves ' + (o.single.length === 1 ? 'it' : 'them') + ' out.</p>';
+  if (o.order.length + o.ask.length === 1) h += '<p class="muted">This guide has only one verified dish on file here that fits. The card asks staff to recommend more.</p>';
+  h += '</section><section class="sec"><div class="step"><span class="num">4</span><h2>Show staff</h2></div><a class="go y" href="' + cardHash(r.id) + '">' + pg('card') + '<span style="flex:1">Show the card</span>' + pg('right') + '</a></section>';
+  return h;
+  function itemHtml(it, n, cls) {
+    return '<li class="' + cls + '"><span class="num">' + n + '</span><div>' + zh(it.d.nameZh) + (it.qty.zh ? '<span class="qz zh" lang="zh-Hans">' + esc(it.qty.zh) + '</span>' : '') +
+      '<span class="en">' + esc(it.d.nameEn) + '</span><p>' + esc(it.qty.en) + '</p>' +
+      (it.typical.length ? '<p>Typically contains ' + esc(it.typical.join(', ')) + '.</p>' : '') +
+      (it.why ? '<p class="dl clash">' + pg('warn') + '<span>' + esc(it.why) + '</span></p>' : '') + '</div></li>';
+  }
+}
+
+/* ---------- 4. card ---------- */
+function cardView(r, q) {
+  S.last = r.id;
+  var o = buildOrder(r, S.party, curDiet());
+  var ids = o.cards;
+  var ci = Math.max(0, Math.min(ids.length - 1, Number(q.c) || 0));
+  var m = cardModel(o, ids[ci] || null);
+  var h = '<div class="card"><header class="cband"><a class="arrow" href="' + orderHash(r.id) + '" aria-label="Back to the order">' + pg('left') + '</a>' +
+    '<span class="t">For staff at ' + esc(short(r)) + '<small>' + (m.card ? esc(m.card.titleEn) : 'No dietary card') + '. English below</small></span><span class="proto">Prototype<br>draft data</span></header>' +
+    (ids.length > 1 ? '<div class="cswitch">' + ids.map(function (id, i) { return '<a href="' + cardHash(r.id, i) + '" aria-current="' + (i === ci) + '">' + esc(P.cards[id].titleEn) + '</a>'; }).join('') + '</div>' : '') +
+    '<section class="cz" lang="zh-Hans"><p class="g">' + esc(m.greeting.zh) + '</p>' +
+    (m.items.length ? '<ol>' + m.items.map(function (it, i) { return '<li><span class="n" lang="en">' + (i + 1) + '</span><span>' + esc(it.zh) + (it.qzh ? '　' + esc(it.qzh) : '') + '</span></li>'; }).join('') + '</ol>' : '') +
+    (m.card ? '<p class="st">' + esc(m.body[0].zh) + '</p>' + m.body.slice(1).map(function (l) { return '<p class="s2">' + esc(l.zh) + '</p>'; }).join('') : '') +
+    '<p class="cl">' + esc(m.closing.zh) + '</p></section>' +
+    '<section class="gloss"><h2>' + pg('info') + 'English, for you</h2><p>' + esc(m.greeting.en) + '</p>' +
+    (m.items.length ? '<ol>' + m.items.map(function (it) { return '<li><b>' + esc(it.en) + '</b>' + (it.qen ? '. ' + esc(it.qen) : '') + '</li>'; }).join('') + '</ol>' : '<p><i>No dish from the verified list fits, so the card lists none.</i></p>') +
+    (m.card ? m.body.map(function (l) { return '<p>' + esc(l.en) + '</p>'; }).join('') : '<p><i>No dietary card chosen. Add one in step 2 of the order.</i></p>') +
+    '<p>' + esc(m.closing.en) + '</p>' + (m.card && m.card.noteEn ? '<p>' + esc(m.card.noteEn) + '</p>' : '') +
+    '<p class="warn">' + pg('warn') + '<span>' + esc(P.cardsDisclaimer) + '</span></p></section></div>';
+  return h;
+}
+
+/* ---------- router ---------- */
+function render() {
+  var h = parseHash(), p = h.parts, q = h.q;
+  if (q.chips !== undefined) {
+    var c = q.chips.split(',').filter(function (v) { return OPT[v]; });
+    if (!S.submitted || c.join() !== S.chips.join()) { S.chips = c; S.diet = null; }
+    S.submitted = true;
+  } else if (!p.length) S.submitted = false;
+  if (q.n) S.party = Math.max(1, Math.min(6, Math.round(Number(q.n) || 2)));
+  if (q.diet !== undefined) S.diet = q.diet.split(',').filter(function (v) { return P.cards[v]; });
+  var r = p[1] ? byId(p[1]) : null;
+  var html;
+  var prevScroll = window.scrollY;
+  var keepScroll = false;
+  if (p[0] === 'r' && r) { html = placeView(r, q); keepScroll = root.getAttribute('data-view') === 'r-' + r.id; root.setAttribute('data-view', 'r-' + r.id); }
+  else if (p[0] === 'order' && r) { html = orderView(r); keepScroll = root.getAttribute('data-view') === 'o-' + r.id; root.setAttribute('data-view', 'o-' + r.id); }
+  else if (p[0] === 'card' && r) { html = cardView(r, q); root.setAttribute('data-view', 'c-' + r.id); }
+  else { html = homeView(); keepScroll = root.getAttribute('data-view') === 'home' && S.submitted; root.setAttribute('data-view', 'home'); }
+  root.innerHTML = p[0] === 'card' && r ? html : '<div class="app">' + html + '</div>';
+  overlay.innerHTML = '';
+  if (q.ask && document.getElementById('ask')) {
+    var el = document.getElementById('ask');
+    if (!keepScroll) window.scrollTo(0, Math.max(0, el.getBoundingClientRect().top + window.scrollY - 72));
+    else window.scrollTo(0, prevScroll);
+  } else window.scrollTo(0, keepScroll ? prevScroll : 0);
+}
+function act(a, t) {
+  if (a === 'parse') {
+    var ta = document.getElementById('say');
+    S.said = (ta && ta.value.trim()) || PREFILL;
+    var p = parseSentence(S.said);
+    S.chips = p.chips; if (p.party) S.party = p.party; S.diet = null; S.submitted = true; S.adding = false;
+    location.hash = homeHash();
+    setTimeout(function () { var s = document.querySelectorAll('.sec')[1]; if (s) s.scrollIntoView({ block: 'start' }); window.scrollBy(0, -70); }, 30);
+  } else if (a === 'rm') {
+    S.chips = S.chips.filter(function (v) { return v !== t.getAttribute('data-v'); }); S.diet = null; location.hash = homeHash();
+  } else if (a === 'add') {
+    S.adding = !S.adding; render();
+  } else if (a === 'toggle') {
+    var v = t.getAttribute('data-v');
+    S.chips = S.chips.indexOf(v) >= 0 ? S.chips.filter(function (x) { return x !== v; }) : S.chips.concat([v]);
+    S.diet = null; location.hash = homeHash();
+  } else if (a === 'plate') {
+    var r = byId(parseHash().parts[1]);
+    overlay.innerHTML = '<div class="overlay" role="dialog" aria-modal="true" aria-label="Address for the driver"><button class="close" data-act="close" aria-label="Close">' + pg('x') + '</button>' +
+      '<div class="in"><p>' + pg('taxi') + ' Please take me to</p>' + zh(r.addressZh) + '<p style="margin-top:16px;font-weight:600">' + esc(r.addressEn) + '</p></div></div>';
+    overlay.querySelector('.close').focus();
+  } else if (a === 'close') overlay.innerHTML = '';
+  else if (a === 'net') { var n = document.querySelector('.net'); if (n) window.scrollTo(0, n.getBoundingClientRect().top + window.scrollY - 70); }
+}
+document.addEventListener('click', function (e) {
+  var t = e.target.closest('[data-act]');
+  if (!t) return;
+  e.preventDefault();
+  act(t.getAttribute('data-act'), t);
+});
+document.addEventListener('submit', function (e) { if (e.target.id === 'sayf') { e.preventDefault(); act('parse'); } });
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && overlay.innerHTML) overlay.innerHTML = ''; });
+window.addEventListener('hashchange', render);
+render();
+})();
+</script>
+</body>
+</html>

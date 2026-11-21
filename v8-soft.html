@@ -1,0 +1,847 @@
+<!doctype html>
+<!--
+  V8 "Soft": a friendly, tactile consumer app.
+  Fonts: Fredoka (variable, latin subset), by Milena Brandão and Hafontia, SIL Open Font License 1.1;
+         Nunito (variable, latin subset), by Vernon Adams, Cyreal and Jacques Le Bailly, SIL Open Font License 1.1.
+  Both self-hosted from fonts/ (Fontsource @fontsource-variable/fredoka and /nunito 5.2.7). Chinese uses the system stack.
+  Sticker illustrations are hand-written inline SVG. No network requests at runtime.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#FFF4E6">
+<title>Soft · China Food Guide</title>
+<style>
+@font-face { font-family: "Fredoka"; src: url("fonts/fredoka-latin-standard-normal.woff2") format("woff2"); font-weight: 300 700; font-stretch: 75% 125%; font-display: swap; }
+@font-face { font-family: "Nunito"; src: url("fonts/nunito-latin-wght-normal.woff2") format("woff2"); font-weight: 200 1000; font-display: swap; }
+:root {
+  --cream: #FFF4E6; --ink: #2B1A12; --ink2: #5C4636; --white: #FFFFFF;
+  --peach: #FFBE9C; --butter: #FFD970; --mint: #9FE0BF; --rose: #F7B5C0; --lilac: #D3C2F5; --sky: #B9DDF7;
+  --warn-ink: #9B1C10; --warn-edge: #C62D1F; --warn-bg: #FFFFFF;
+  --pop: cubic-bezier(.34, 1.56, .64, 1);
+  --zh: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: #F3E3CF; color: var(--ink); font-family: "Nunito", system-ui, sans-serif; font-size: 17px; line-height: 1.5; font-weight: 550; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+.zh, [lang="zh-Hans"] { font-family: var(--zh); }
+a { color: inherit; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.f { font-family: "Fredoka", "Nunito", system-ui, sans-serif; }
+.app { max-width: 430px; margin: 0 auto; min-height: 100vh; background: var(--cream); padding: 0 0 calc(28px + var(--safe-b)); overflow-x: hidden; }
+.press { transition: transform .22s var(--pop); }
+.press:active { transform: scale(.95); }
+
+/* header */
+.hd { display: flex; align-items: center; gap: 10px; padding: calc(12px + var(--safe-t)) 16px 6px; }
+.wm { display: flex; align-items: center; gap: 8px; text-decoration: none; flex: 1; min-width: 0; min-height: 48px; }
+.wm .st { width: 46px; height: 40px; transform: rotate(-8deg); flex: none; }
+.wm b { font-family: "Fredoka", sans-serif; font-weight: 650; font-stretch: 108%; font-size: 23px; line-height: 1; letter-spacing: -.01em; }
+.tag { flex: none; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 14px; line-height: 1.15; text-align: center; background: var(--white); border: 2.5px solid var(--ink); border-radius: 12px; padding: 4px 8px; transform: rotate(3deg); }
+.back { width: 48px; height: 48px; border-radius: 50%; border: 3px solid var(--ink); display: grid; place-items: center; background: var(--white); flex: none; }
+.back svg { width: 22px; height: 22px; }
+.hello { padding: 4px 16px 12px; margin: 0; font-family: "Fredoka", sans-serif; font-weight: 500; font-size: 30px; line-height: 1.1; letter-spacing: -.01em; }
+
+/* tiles */
+.grid { display: grid; grid-template-columns: 1.12fr .88fr; grid-auto-flow: row dense; gap: 12px; padding: 0 16px; }
+.tile { position: relative; border-radius: 30px; padding: 16px; text-decoration: none; display: block; animation: pop .4s var(--pop) both; animation-delay: var(--d, 0s); overflow: hidden; }
+@keyframes pop { from { transform: scale(.94) translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+.wide { grid-column: 1 / -1; }
+.tall { grid-row: span 2; }
+.t-tell { background: var(--peach); border-radius: 34px 34px 34px 12px; padding: 14px 16px 10px; }
+.t-tell h2 { margin: 0 0 10px; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 22px; line-height: 1.15; }
+.say { width: 100%; min-height: 112px; resize: none; border: 3px solid var(--ink); border-radius: 22px; background: var(--white); padding: 12px 14px; font: 600 18px/1.4 "Nunito", system-ui, sans-serif; color: var(--ink); }
+.say:focus { outline: none; box-shadow: 0 0 0 4px var(--butter); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; padding: 0 22px; border-radius: 99px; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 19px; text-decoration: none; text-align: center; line-height: 1.1; }
+.btn.ink { background: var(--ink); color: var(--butter); }
+.btn.out { background: var(--white); border: 3px solid var(--ink); }
+.btn.full { width: 100%; }
+.btn svg { width: 22px; height: 22px; }
+.demo { margin: 8px 2px 0; font-size: 15px; font-weight: 650; color: var(--ink2); }
+.t-tell .demo { color: #4A2E1E; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 6px 0 13px; border-radius: 99px; background: var(--white); border: 2.5px solid var(--ink); font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 16px; transition: transform .22s var(--pop), opacity .15s; }
+.chip .x { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--white); display: grid; place-items: center; }
+.chip .x svg { width: 14px; height: 14px; }
+.chip.add { background: var(--ink); color: var(--butter); padding: 0 16px; }
+.chip.bye { transform: scale(0); opacity: 0; }
+.chip[aria-pressed="false"] { background: transparent; border-style: dashed; }
+.chip[aria-pressed="true"] { background: var(--butter); }
+.linkish { font-weight: 800; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; min-height: 44px; display: inline-flex; align-items: center; }
+.picker { margin: 12px 0 0; background: var(--white); border: 3px solid var(--ink); border-radius: 24px; padding: 10px 12px 12px; }
+.picker h3 { margin: 6px 0 6px; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 16px; }
+
+.t-best { background: var(--c); min-height: 250px; border-radius: 34px 12px 34px 34px; padding: 18px 18px 18px; }
+.t-best .st { position: absolute; right: -2px; top: 66px; width: 136px; height: 112px; transform: rotate(8deg); }
+.badge { display: inline-block; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 15px; background: var(--ink); color: var(--white); border-radius: 99px; padding: 4px 12px; }
+.t-best h3 { margin: 12px 0 2px; max-width: 62%; font-family: "Fredoka", sans-serif; font-weight: 650; font-size: 31px; line-height: 1.02; letter-spacing: -.01em; }
+.t-best .zh { display: block; font-size: 16px; font-weight: 600; max-width: 64%; }
+.t-best .sub { margin: 4px 0 0; font-weight: 700; font-size: 16px; max-width: 64%; }
+.fits { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; }
+.fits li { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 15px; background: var(--white); border-radius: 99px; padding: 3px 11px 3px 6px; }
+.fits li svg { width: 18px; height: 18px; }
+.fits li.u { background: transparent; border: 2px dashed var(--ink); }
+.miss { margin: 6px 0 0; font-size: 16px; font-weight: 700; color: var(--ink2); }
+.dline { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0 0; font-size: 16px; line-height: 1.4; font-weight: 650; background: rgba(255,255,255,.72); border-radius: 18px; padding: 8px 12px; }
+.dline svg { width: 22px; height: 22px; flex: none; margin-top: 1px; }
+.dline.clash, .warn { background: var(--warn-bg); color: var(--warn-ink); border: 3px dashed var(--warn-edge); }
+.go-arrow { position: absolute; right: 14px; top: 14px; width: 46px; height: 46px; border-radius: 50%; background: var(--ink); color: var(--butter); display: grid; place-items: center; }
+.go-arrow svg { width: 22px; height: 22px; }
+.t-best .dline { margin-right: 0; }
+
+.t-mid { grid-column: 1; background: var(--c); padding: 14px 14px 16px; border-radius: 26px; }
+.t-mid .st { width: 88px; height: 74px; display: block; margin: -4px 0 4px -4px; transform: rotate(var(--rot, -6deg)); }
+.t-mid h3 { margin: 0; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 21px; line-height: 1.05; }
+.t-mid .zh { display: block; font-size: 16px; font-weight: 600; margin-top: 2px; }
+.t-mid .fits li { font-size: 14px; }
+
+.t-card { grid-column: 2; grid-row: span 2; background: var(--lilac); border-radius: 26px 26px 40px 26px; display: flex; flex-direction: column; }
+.t-card h3, .t-rest h3, .t-dish h3, .sheet6 h3 { margin: 0; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 20px; line-height: 1.1; }
+.t-card .preview { display: flex; flex-direction: column; gap: 6px; background: var(--white); border: 3px solid var(--ink); border-radius: 20px; margin: 10px 0 12px; padding: 12px 10px; transform: rotate(-2deg); }
+.t-card .preview .zh { font-size: 23px; font-weight: 700; line-height: 1.3; }
+.t-card .preview .zs { font-size: 15px; font-weight: 600; line-height: 1.35; }
+.t-card .preview .zo { font-size: 19px; font-weight: 700; background: var(--butter); border-radius: 10px; padding: 2px 8px; }
+.t-card .btn { margin-top: auto; }
+.t-card .preview small { display: block; font-size: 14px; font-weight: 700; color: var(--ink2); margin-top: 4px; }
+.t-card .btn { min-height: 48px; font-size: 17px; padding: 0 14px; }
+
+.t-rest { background: var(--white); border: 3px solid var(--ink); border-radius: 26px; padding: 14px 12px; }
+.t-rest ul { list-style: none; margin: 8px 0 0; padding: 0; }
+.t-rest a { display: flex; align-items: center; gap: 8px; min-height: 52px; text-decoration: none; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 17px; line-height: 1.1; border-radius: 16px; padding: 2px 4px; }
+.t-rest a:active { background: var(--cream); }
+.t-rest .st { width: 46px; height: 40px; flex: none; }
+.t-rest p { margin: 4px 0 0; font-size: 15px; color: var(--ink2); font-weight: 650; }
+.t-dish { background: var(--butter); border-radius: 26px 26px 26px 10px; display: flex; align-items: center; gap: 12px; }
+.t-dish .st { width: 86px; height: 72px; flex: none; transform: rotate(6deg); }
+.t-dish p { margin: 4px 0 0; font-size: 16px; font-weight: 700; }
+.sheet6 { background: var(--white); border: 3px solid var(--ink); }
+.sheet6 ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.sheet6 a { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; text-decoration: none; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 15px; line-height: 1.1; padding: 8px 2px; border-radius: 20px; background: var(--c); min-height: 112px; }
+.sheet6 .st { width: 72px; height: 60px; transform: rotate(var(--rot)); }
+.foot { margin: 18px 16px 0; font-size: 16px; color: var(--ink2); font-weight: 650; }
+
+/* stickers: a white die-cut edge, then flat fills with a thick ink outline */
+.st { overflow: visible; }
+.st .edge * { fill: #fff !important; stroke: #fff !important; stroke-width: 13px; stroke-linejoin: round; stroke-linecap: round; }
+.st .art * { stroke: var(--ink); stroke-width: 4.5px; stroke-linejoin: round; stroke-linecap: round; }
+.st .art .nos { stroke: none; }
+
+/* restaurant */
+.hero { margin: 4px 16px 0; background: var(--c); border-radius: 36px 36px 36px 14px; padding: 18px 18px 20px; position: relative; overflow: hidden; }
+.hero .st { display: block; width: 210px; height: 175px; margin: -4px auto 4px; transform: rotate(-5deg); }
+.hero h1 { margin: 0; font-family: "Fredoka", sans-serif; font-weight: 650; font-size: 32px; line-height: 1.02; letter-spacing: -.012em; }
+.hero .sub { margin: 4px 0 0; font-weight: 750; }
+.hero .zh { display: block; font-size: 20px; font-weight: 600; margin-top: 4px; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
+.pill { display: inline-flex; align-items: center; min-height: 32px; font-weight: 800; font-size: 15px; background: var(--white); border-radius: 99px; padding: 3px 12px; }
+.pill.u { background: transparent; border: 2px dashed var(--ink); }
+.body { padding: 0 16px; }
+.why { font-family: "Fredoka", sans-serif; font-weight: 500; font-size: 22px; line-height: 1.25; margin: 18px 0 0; }
+.acts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0 0; }
+.acts .btn { padding: 0 10px; font-size: 18px; min-height: 58px; }
+.acts .btn[aria-disabled="true"] { opacity: .65; }
+.ticket {
+  display: block; width: 100%; text-align: left; margin: 18px 0 0; background: var(--white); border: 3px solid var(--ink); border-radius: 26px; padding: 14px 16px 16px; position: relative;
+}
+.ticket::before, .ticket::after { content: ""; position: absolute; top: 58px; width: 22px; height: 22px; border-radius: 50%; background: var(--cream); border: 3px solid var(--ink); }
+.ticket::before { left: -13px; clip-path: inset(0 0 0 50%); }
+.ticket::after { right: -13px; clip-path: inset(0 50% 0 0); }
+.ticket .top { display: flex; align-items: center; gap: 8px; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 18px; padding-bottom: 12px; border-bottom: 3px dashed var(--ink); }
+.ticket .top .st { width: 50px; height: 40px; }
+.ticket .top span { flex: 1; }
+.ticket .zh { display: block; font-size: 28px; font-weight: 700; line-height: 1.3; margin: 12px 0 4px; }
+.ticket .en { font-size: 16px; font-weight: 700; color: var(--ink2); }
+.note { font-size: 16px; color: var(--ink2); margin: 8px 4px 0; font-weight: 650; }
+.blob { margin: 16px 0 0; border-radius: 28px; padding: 14px 16px 16px; }
+.blob h2 { margin: 0 0 4px; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 20px; }
+.blob p { margin: 0; }
+.blob.a { background: var(--mint); border-radius: 28px 28px 28px 8px; }
+.blob.b { background: var(--butter); border-radius: 28px 8px 28px 28px; }
+.blob.c { background: var(--white); border: 3px solid var(--ink); }
+.dishes { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 8px; }
+.dish { display: flex; align-items: center; gap: 10px; background: var(--cream); border-radius: 20px; padding: 8px 12px; min-height: 56px; text-decoration: none; }
+.dish .nm { flex: 1; }
+.dish .zh { display: block; font-size: 19px; font-weight: 700; }
+.dish .en { font-size: 16px; font-weight: 700; }
+.dish .b2 { flex: none; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 14px; background: var(--ink); color: var(--white); border-radius: 99px; padding: 3px 10px; white-space: nowrap; }
+.dish .b1 { flex: none; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 14px; border: 2px dashed var(--ink); border-radius: 99px; padding: 2px 10px; white-space: nowrap; }
+.dish.single { background: transparent; border: 2px dashed #9C8574; }
+.ask-link { font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 15px; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; display: inline-flex; min-height: 44px; align-items: center; }
+.srcs { font-size: 16px; color: var(--ink2); margin: 14px 4px 0; font-weight: 650; }
+
+/* order */
+.h1 { margin: 6px 16px 0; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 30px; line-height: 1.08; }
+.minir { display: flex; align-items: center; gap: 8px; margin: 10px 16px 0; background: var(--c); border-radius: 22px; padding: 8px 14px 8px 8px; }
+.minir .st { width: 64px; height: 54px; flex: none; }
+.minir b { display: block; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 19px; line-height: 1.05; }
+.q { margin: 20px 16px 8px; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 21px; }
+.pebbles { display: flex; gap: 8px; padding: 0 16px; flex-wrap: wrap; }
+.pebbles a { width: 52px; height: 52px; border-radius: 50% 50% 46% 54%; border: 3px solid var(--ink); background: var(--white); display: grid; place-items: center; text-decoration: none; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 22px; transition: transform .25s var(--pop); }
+.pebbles a[aria-current="true"] { background: var(--ink); color: var(--butter); transform: scale(1.08) rotate(-6deg); }
+.needs { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px; }
+.need { display: inline-flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 16px 0 10px; border-radius: 99px; border: 3px solid var(--ink); background: var(--white); text-decoration: none; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 18px; transition: transform .25s var(--pop); }
+.need .bx { width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--ink); display: grid; place-items: center; }
+.need .bx svg { width: 16px; height: 16px; }
+.need[aria-pressed="true"] { background: var(--butter); }
+.need[aria-pressed="true"] .bx { background: var(--ink); color: var(--butter); }
+.tray { margin: 16px 16px 0; background: var(--white); border: 3px solid var(--ink); border-radius: 30px; padding: 6px 14px 14px; }
+.tray h2 { margin: 10px 0 6px; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 20px; }
+.olist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.olist li { display: grid; grid-template-columns: 58px 1fr; gap: 10px; align-items: start; background: var(--cream); border-radius: 22px; padding: 10px 12px 12px 8px; animation: pop .35s var(--pop) both; }
+.olist .st { width: 58px; height: 48px; }
+.olist .dotz { width: 46px; height: 46px; margin: 2px 6px; border-radius: 50%; border: 3px solid var(--ink); background: var(--rose); }
+.olist .zh { font-size: 25px; font-weight: 700; }
+.olist .qz { font-size: 21px; font-weight: 700; margin-left: 6px; }
+.olist .en { display: block; font-weight: 800; }
+.olist p { margin: 4px 0 0; font-size: 16px; font-weight: 650; color: var(--ink2); }
+.olist .warn { color: var(--warn-ink); margin-top: 8px; padding: 6px 10px; font-size: 15px; display: flex; gap: 6px; border-radius: 14px; }
+.olist .warn svg { width: 20px; height: 20px; flex: none; }
+.sub-h { font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 17px; margin: 14px 0 6px; }
+.outl { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cta { margin: 18px 16px 0; }
+
+/* card */
+.cardv { max-width: 430px; margin: 0 auto; min-height: 100vh; background: var(--cream); padding: calc(6px + var(--safe-t)) 10px calc(20px + var(--safe-b)); }
+.ctop { display: flex; align-items: center; gap: 8px; min-height: 52px; }
+.ctop .t { flex: 1; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 16px; line-height: 1.15; }
+.ctop .tag { transform: rotate(2deg); font-size: 13px; }
+.paper { background: var(--white); color: #1A1009; border: 3px solid var(--ink); border-radius: 28px; padding: 1.4vh 16px 1.4vh; margin-top: 4px; }
+.paper .g { font-size: min(22px, 3.2vh); font-weight: 600; margin: 0 0 1vh; }
+.paper ul { list-style: none; margin: 0 0 1.2vh; padding: .6vh 12px; background: var(--butter); border-radius: 18px; }
+.paper ul li { font-size: min(31px, 4.5vh); font-weight: 800; line-height: 1.3; }
+.paper ul li b { margin-left: .4em; }
+.paper .st1 { font-size: min(31px, 4.6vh); font-weight: 800; line-height: 1.25; margin: 0 0 1vh; }
+.paper .s2 { font-size: min(20px, 3vh); font-weight: 500; line-height: 1.45; margin: 0 0 .7vh; }
+.paper .cl { font-size: min(23px, 3.4vh); font-weight: 700; margin: .8vh 0 0; }
+.cswitch { display: flex; gap: 6px; margin: 8px 0 0; }
+.cswitch a { flex: 1; min-height: 46px; display: grid; place-items: center; border-radius: 99px; border: 3px solid var(--ink); text-decoration: none; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 16px; background: var(--white); }
+.cswitch a[aria-current="true"] { background: var(--ink); color: var(--butter); }
+.gloss { margin: 14px 0 0; background: var(--peach); border-radius: 28px; padding: 14px 16px 16px; }
+.gloss h2 { margin: 0 0 6px; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 21px; }
+.gloss p, .gloss li { margin: 0 0 8px; font-size: 16px; }
+.gloss ol { padding-left: 1.3em; margin: 0 0 8px; }
+.gloss .warn { padding: 10px 12px; border-radius: 18px; display: flex; gap: 8px; margin-top: 10px; }
+.gloss .warn svg { width: 24px; height: 24px; flex: none; }
+
+/* ask: a short chat over the page */
+.ov { position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-end; justify-content: center; background: rgba(43, 26, 18, .45); animation: fade .2s both; }
+@keyframes fade { from { opacity: 0; } }
+.chat { width: min(100%, 430px); max-height: 88vh; overflow-y: auto; background: var(--cream); border-radius: 32px 32px 0 0; padding: 14px 16px calc(20px + var(--safe-b)); animation: up .42s var(--pop) both; }
+@keyframes up { from { transform: translateY(40%); } }
+.chat-h { display: flex; align-items: center; gap: 10px; }
+.chat-h .st { width: 74px; height: 62px; flex: none; transform: rotate(-6deg); }
+.chat-h h2 { flex: 1; margin: 0; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 22px; line-height: 1.1; }
+.chat-h .zh { display: block; font-size: 17px; font-weight: 600; }
+.bubbles { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 0; }
+.me { align-self: flex-end; background: var(--ink); color: var(--white); border-radius: 22px 22px 6px 22px; padding: 8px 14px; font-weight: 750; max-width: 80%; animation: pop .3s var(--pop) both; }
+.them { align-self: flex-start; background: var(--white); border: 3px solid var(--ink); border-radius: 22px 22px 22px 6px; padding: 10px 14px; max-width: 94%; animation: pop .35s var(--pop) .08s both; }
+.them p { margin: 0 0 8px; }
+.them dl { margin: 0; }
+.them dt { font-weight: 850; margin-top: 6px; }
+.them dd { margin: 0; }
+.them .from { font-size: 15px; color: var(--ink2); margin: 8px 0 0; }
+.them .warn { padding: 8px 10px; border-radius: 14px; display: flex; gap: 6px; font-size: 15px; }
+.them .warn svg { width: 20px; height: 20px; flex: none; }
+.qbtns { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+.qbtns a { min-height: 46px; display: inline-flex; align-items: center; padding: 0 16px; border-radius: 99px; border: 3px solid var(--ink); background: var(--white); text-decoration: none; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 17px; }
+.qbtns a[aria-current="true"] { background: var(--butter); }
+.close { width: 48px; height: 48px; border-radius: 50%; border: 3px solid var(--ink); background: var(--white); display: grid; place-items: center; flex: none; }
+.close svg { width: 20px; height: 20px; }
+.driver { position: fixed; inset: 0; z-index: 40; background: var(--butter); display: flex; flex-direction: column; justify-content: center; padding: 20px 18px calc(20px + var(--safe-b)); animation: fade .2s both; }
+.driver .in { max-width: 430px; margin: 0 auto; width: 100%; background: var(--white); border: 4px solid var(--ink); border-radius: 30px; padding: 20px 18px; }
+.driver .zh { display: block; font-size: clamp(34px, 11vw, 48px); font-weight: 700; line-height: 1.3; color: #1A1009; }
+.driver p { margin: 0 0 10px; font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 20px; }
+.driver .close { position: absolute; top: calc(14px + var(--safe-t)); right: 14px; }
+
+svg.i { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+@media (max-width: 350px) {
+  .grid { grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 12px; }
+  .t-best h3 { font-size: 26px; }
+  .t-best .st { width: 104px; height: 86px; top: 40px; }
+  .t-best .zh, .t-best .sub { max-width: 60%; }
+  .wm b { font-size: 20px; }
+  .hello { font-size: 26px; }
+  .acts { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="ov"></div>
+<script src="data.js"></script>
+<script>
+(function () {
+'use strict';
+/* ---------- core rules (a short re-implementation of form-test/proto.js; data only from data.js) ---------- */
+var P = window.PROTO;
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function zh(t, cls) { return '<span class="zh' + (cls ? ' ' + cls : '') + '" lang="zh-Hans">' + esc(t) + '</span>'; }
+function byId(id) { for (var i = 0; i < P.restaurants.length; i++) if (P.restaurants[i].id === id) return P.restaurants[i]; return null; }
+var PRICE = { budget: '¥ Budget', mid: '¥¥ Mid' };
+var CUISINE = { duck: 'Peking duck', noodles: 'Noodles', dumplings: 'Dumplings', hotpot: 'Hotpot', snacks: 'Breakfast & snacks' };
+var ALG = { peanut: 'peanut', tree_nut: 'tree nuts', sesame: 'sesame', gluten: 'gluten', soy: 'soy', shellfish: 'shellfish', fish: 'fish', egg: 'egg', dairy: 'dairy' };
+var DIETNOTE = { pork: 'contains pork', high_fat: 'rich and fatty', organ_meat: 'organ meat', msg_common: 'MSG common' };
+var DIVERGE = { fermented_or_pungent: 'strong smell, fermented', texture: 'unfamiliar texture' };
+var FIRST = { crowd_pleaser: 'a crowd pleaser', approachable: 'approachable', adventurous: 'adventurous', challenging: 'challenging' };
+var PRESENCE = { always: 'always', common: 'common', varies: 'sometimes' };
+var PREFILL = 'Two of us staying near the Forbidden City, one doesn’t eat pork. We want Peking duck or noodles, mid-range.';
+
+var OPTS = [
+  { k: 'diet', v: 'no-pork', label: 'No pork' },
+  { k: 'diet', v: 'peanut', label: 'Peanut allergy' },
+  { k: 'diet', v: 'sesame', label: 'Sesame allergy' },
+  { k: 'area', v: 'fc', label: 'Near the Forbidden City' },
+  { k: 'area', v: 'dongcheng', label: 'Dongcheng' },
+  { k: 'area', v: 'xicheng', label: 'Xicheng' },
+  { k: 'area', v: 'chaoyang', label: 'Chaoyang' },
+  { k: 'cuisine', v: 'duck', label: 'Peking duck' },
+  { k: 'cuisine', v: 'noodles', label: 'Noodles' },
+  { k: 'cuisine', v: 'dumplings', label: 'Dumplings' },
+  { k: 'cuisine', v: 'hotpot', label: 'Hotpot' },
+  { k: 'cuisine', v: 'snacks', label: 'Breakfast & snacks' },
+  { k: 'price', v: 'budget', label: '¥ Budget' },
+  { k: 'price', v: 'mid', label: '¥¥ Mid' }
+];
+var OPT = {};
+OPTS.forEach(function (o) { OPT[o.v] = o; });
+var GROUP_LABEL = { diet: 'Can’t eat', area: 'Area', cuisine: 'Food', price: 'Price' };
+
+var RULES = [
+  [/\bpork\b|\bpig\b|halal|muslim|清真/, 'no-pork'],
+  [/peanut/, 'peanut'],
+  [/sesame/, 'sesame'],
+  [/forbidden city|palace|gugong|故宫|tiananmen/, 'fc'],
+  [/dongcheng|东城/, 'dongcheng'],
+  [/xicheng|西城/, 'xicheng'],
+  [/chaoyang|sanlitun|朝阳/, 'chaoyang'],
+  [/\bduck\b|peking|kaoya|烤鸭/, 'duck'],
+  [/noodle|\bmian\b|面/, 'noodles'],
+  [/dumpling|jiaozi|饺子/, 'dumplings'],
+  [/hot ?pot|mutton|lamb|火锅/, 'hotpot'],
+  [/breakfast|snack|douzhi/, 'snacks'],
+  [/\bmid\b|mid-range|moderate|not too expensive/, 'mid'],
+  [/cheap|inexpensive|\bbudget\b/, 'budget']
+];
+var NUM = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
+function parseSentence(s) {
+  var t = String(s || '').toLowerCase().replace(/’/g, "'");
+  var chips = [], hits = [];
+  RULES.forEach(function (rule) {
+    var m = t.match(rule[0]);
+    if (!m) return;
+    if (rule[1] === 'budget' && /mid[ -]budget/.test(t)) return;
+    if (chips.indexOf(rule[1]) < 0) { chips.push(rule[1]); hits.push([m[0], OPT[rule[1]].label]); }
+  });
+  var party = null;
+  var pm = t.match(/\b(one|two|three|four|five|six|[1-6])\b (of us|people|adults|friends)/);
+  if (pm) party = NUM[pm[1]] || Number(pm[1]);
+  else if (/\b(just me|solo|alone|by myself)\b/.test(t)) party = 1;
+  return { chips: chips, party: party, hits: hits };
+}
+function groups(chips) {
+  var g = { diet: [], area: [], cuisine: [], price: [] };
+  chips.forEach(function (v) { if (OPT[v]) g[OPT[v].k].push(v); });
+  return g;
+}
+function splitName(n) {
+  var i = n.indexOf(' (');
+  return i < 0 ? { main: n, sub: '' } : { main: n.slice(0, i), sub: n.slice(i + 2, n.length - 1) };
+}
+function shortDish(d) { return d.nameEn.replace(/ \(.*\)$/, ''); }
+function verifiedDishes(r) { return r.dishes.filter(function (d) { return d.verified; }); }
+function singleDishes(r) { return r.dishes.filter(function (d) { return !d.verified; }); }
+function libDishes(r) { return r.dishes.filter(function (d) { return d.verified && d.slug && P.dishes[d.slug]; }); }
+function hasPork(d) {
+  if (d.slug && P.dishes[d.slug]) return P.dishes[d.slug].dietaryNotes.indexOf('pork') >= 0;
+  return d.nameZh.indexOf('猪肉') >= 0;
+}
+function allergenOf(slug, a) {
+  return (P.dishes[slug].allergens.filter(function (x) { return x.allergen === a; })[0]) || null;
+}
+function listJoin(a) { return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
+var UNCONFIRMED = [['hours', 'hours'], ['priceBand', 'price band'], ['spendPerHead', 'spend per head'], ['ordering', 'how to order'], ['payment', 'payment'], ['englishMenu', 'English menu']];
+function notConfirmed(r) {
+  return UNCONFIRMED.filter(function (f) { return r[f[0]] == null; }).map(function (f) { return f[1]; });
+}
+function fmtDate(iso) {
+  if (!iso) return 'undated';
+  var m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var p = iso.split('-');
+  return Number(p[2]) + ' ' + m[Number(p[1]) - 1] + ' ' + p[0];
+}
+function sourceNames(r) { return r.sources.map(function (s) { return s.name; }); }
+
+/* one line per dietary need, conditional wording only */
+function dietLine(r, v) {
+  var ver = verifiedDishes(r), lib = libDishes(r);
+  var noLib = ver.filter(function (d) { return !d.slug; });
+  if (v === 'no-pork') {
+    if (r.halalSignage === true) return { tone: 'cue', text: zh('清真') + ' (halal) is in the shop name: a strong cue, not a certification. The no-pork card still applies.' };
+    if (r.onlyDishPork) return { tone: 'clash', text: 'Its only dish is pork-based, and none of our sources mentions a pork-free version.' };
+    var pork = ver.filter(hasPork);
+    if (pork.length) return { tone: 'ask', text: esc(listJoin(pork.map(shortDish))) + ' typically contains pork; fillings vary, so ask about each one.' };
+    if (noLib.length) return { tone: 'ask', text: 'Some dishes here have no dish notes yet, so pork cannot be ruled out. Ask with the card.' };
+    return { tone: 'ask', text: 'Our dish notes list no pork in ' + esc(listJoin(lib.map(shortDish))) + '. Kitchens vary, so ask with the card.' };
+  }
+  var name = ALG[v];
+  var hit = [];
+  lib.forEach(function (d) { var x = allergenOf(d.slug, v); if (x) hit.push([d, x]); });
+  var desc = noLib.filter(function (d) { return new RegExp(v, 'i').test(d.note || '') || new RegExp(v, 'i').test(d.nameEn); });
+  if (hit.some(function (h) { return h[1].presence === 'always'; })) return { tone: 'clash', text: esc(cap(name)) + ' is always in the typical preparation of ' + esc(listJoin(hit.map(function (h) { return shortDish(h[0]); }))) + '.' };
+  if (desc.length) return { tone: 'clash', text: esc(listJoin(desc.map(shortDish))) + ' carries ' + esc(name) + ', per the source description. Ask about the rest.' };
+  if (hit.length) return { tone: 'ask', text: esc(cap(name)) + ' can appear in ' + esc(listJoin(hit.map(function (h) { return shortDish(h[0]); }))) + ' (' + esc(PRESENCE[hit[0][1].presence]) + ', typical preparation). Ask with the card.' };
+  if (lib.length && !noLib.length) return { tone: 'ask', text: esc(cap(name)) + ' is not in our typical-preparation notes for ' + esc(listJoin(lib.map(shortDish))) + '. Confirm with the card.' };
+  if (lib.length) return { tone: 'ask', text: esc(cap(name)) + ' is not in our notes for ' + esc(listJoin(lib.map(shortDish))) + '; other dishes have no notes. Ask with the card.' };
+  return { tone: 'ask', text: 'No allergen notes on file for these dishes. Ask with the card.' };
+}
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function evaluate(r, chips) {
+  var g = groups(chips);
+  var e = { fits: [], misses: [], unknown: [], diet: [], clash: false, score: 0 };
+  if (g.area.length) {
+    var a = g.area.filter(function (v) { return v === 'fc' ? r.nearForbiddenCity === true : r.district === v; });
+    if (a.length) { e.fits.push(OPT[a[0]].label); e.score += 1; } else e.misses.push(g.area.map(function (v) { return OPT[v].label; }).join(' or '));
+  }
+  if (g.cuisine.length) {
+    var c = g.cuisine.filter(function (v) { return r.cuisines.indexOf(v) >= 0; });
+    if (c.length) { e.fits.push(OPT[c[0]].label); e.score += 2; } else e.misses.push(g.cuisine.map(function (v) { return OPT[v].label; }).join(' or '));
+  }
+  if (g.price.length) {
+    if (!r.priceBand) e.unknown.push('Price band not confirmed');
+    else if (g.price.indexOf(r.priceBand) >= 0) { e.fits.push(PRICE[r.priceBand]); e.score += 1; }
+    else e.misses.push(g.price.map(function (v) { return OPT[v].label; }).join(' or '));
+  }
+  g.diet.forEach(function (v) {
+    var l = dietLine(r, v); l.label = OPT[v].label; l.v = v;
+    e.diet.push(l);
+    if (l.tone === 'clash') { e.clash = true; e.score -= 3; }
+  });
+  e.full = chips.length > 0 && !e.misses.length && !e.clash && !e.unknown.length;
+  return e;
+}
+function ranked(chips) {
+  return P.restaurants.map(function (r, i) { return { r: r, e: evaluate(r, chips), i: i }; })
+    .sort(function (a, b) { return (b.e.score - a.e.score) || (a.i - b.i); });
+}
+
+/* Build my order: only verified dishes from this restaurant; quantities only where the dish notes give one */
+function quantity(d, party) {
+  if (d.slug === 'peking-duck') {
+    if (party <= 3) return { zh: '半只', en: 'Half a duck (半只). The dish notes say proper roast duck houses sell half ducks to small groups.' };
+    return { zh: '', en: 'Our notes only cover half ducks for small groups; ask staff how much to order for ' + party + '.' };
+  }
+  if (d.slug === 'jiaozi') return { zh: (2 * party) + '–' + (3 * party) + '两', en: 'About ' + (2 * party) + ' to ' + (3 * party) + ' liang (两) for ' + party + '. The dish notes say a normal solo order is two or three liang.' };
+  return { zh: '', en: 'Portion size is not in our notes; staff can advise.' };
+}
+function buildOrder(r, party, diet) {
+  var order = [], ask = [], out = [];
+  verifiedDishes(r).forEach(function (d) {
+    var lib = d.slug ? P.dishes[d.slug] : null;
+    var exclude = null, askFirst = null;
+    if (diet.indexOf('no-pork') >= 0) {
+      if (r.onlyDishPork && lib && lib.dietaryNotes.indexOf('pork') >= 0) exclude = 'Pork-based sauce; none of our sources mentions a pork-free version.';
+      else if (lib && lib.dietaryNotes.indexOf('pork') >= 0) askFirst = 'Typically contains pork. Fillings vary, so ask for a non-pork one.';
+      else if (!lib && hasPork(d)) exclude = 'Pork in the name (猪肉).';
+      else if (!lib) askFirst = 'No dish notes on file, so pork cannot be ruled out. Ask.';
+    }
+    ['peanut', 'sesame'].forEach(function (a) {
+      if (diet.indexOf(a) < 0) return;
+      if (lib) {
+        var x = allergenOf(d.slug, a);
+        if (x && x.presence === 'always') exclude = exclude || cap(ALG[a]) + ' is always in the typical preparation.';
+        else if (x) askFirst = askFirst || cap(ALG[a]) + ' ' + (x.presence === 'varies' ? 'sometimes appears' : 'is common') + ': ' + x.note;
+      } else if (new RegExp(a, 'i').test(d.note || '')) exclude = exclude || cap(ALG[a]) + ', per the source description.';
+      else askFirst = askFirst || 'No allergen notes on file for this dish. Ask with the card.';
+    });
+    var typical = lib ? lib.allergens.filter(function (x) { return diet.indexOf(x.allergen) < 0; }).map(function (x) { return ALG[x.allergen] + ' (' + PRESENCE[x.presence] + ')'; }) : [];
+    var item = { d: d, lib: lib, qty: quantity(d, party), typical: typical, why: askFirst };
+    if (exclude) out.push({ d: d, why: exclude });
+    else if (askFirst) ask.push(item);
+    else order.push(item);
+  });
+  return { order: order, ask: ask, out: out, single: singleDishes(r), cards: diet.filter(function (x) { return P.cards[x]; }), party: party };
+}
+function cardModel(o, cardId) {
+  var items = o.order.concat(o.ask);
+  var c = cardId ? P.cards[cardId] : null;
+  var zhLines = [], enLines = [];
+  return {
+    greeting: P.cardGreeting,
+    closing: P.cardClosing,
+    items: items.map(function (it) { return { zh: it.d.nameZh, qzh: it.qty.zh, en: it.d.nameEn, qen: it.qty.zh ? it.qty.en : '' }; }),
+    card: c,
+    body: c ? [c.statement, c.avoid, c.crossContact, c.askAlternative] : []
+  };
+}
+
+/* Ask about this dish: answers come only from PROTO.dishes[slug] */
+var ASK_TOPICS = [['what', 'What is it?'], ['how', 'How do I eat it?'], ['allergens', 'Allergens?'], ['spice', 'Is it spicy?']];
+function sentences(text) { return (text.match(/[^.!?]+[.!?]+/g) || [text]).map(function (s) { return s.trim(); }); }
+function askAnswer(slug, topic) {
+  var d = P.dishes[slug];
+  var a = { q: '', paras: [], items: [], caution: '' };
+  var body = sentences(d.body.join(' '));
+  if (topic === 'what') {
+    a.q = 'What is it?';
+    a.paras = body.slice(0, 2);
+    if (d.firstTimer) a.items.push({ label: 'For a first try', text: 'Our dish notes call it ' + FIRST[d.firstTimer] + '.' });
+  } else if (topic === 'how') {
+    a.q = 'How do I eat it?';
+    a.paras = [d.howToEat];
+  } else if (topic === 'allergens') {
+    a.q = 'What allergens does it have?';
+    a.items = d.allergens.map(function (x) { return { label: cap(ALG[x.allergen]) + ', ' + PRESENCE[x.presence], text: x.note }; });
+    d.dietaryNotes.forEach(function (n) { a.items.push({ label: 'Also', text: cap(DIETNOTE[n] || n) + '.' }); });
+    a.caution = 'This describes the typical preparation, not this kitchen. Ask staff to confirm; the card asks in Chinese.';
+  } else {
+    a.q = 'Is it spicy?';
+    a.paras = [d.spiceLevel === 0 ? 'Our dish notes mark the typical preparation as not spicy.' : 'Our dish notes give the typical preparation some heat.'];
+    sentences(d.howToEat).concat(body).filter(function (s) { return /spic|chil/i.test(s); }).forEach(function (s) { a.paras.push(s); });
+    d.divergence.forEach(function (n) { a.items.push({ label: 'Heads up', text: cap(DIVERGE[n] || n) + '.' }); });
+    d.cautiousAlternatives.forEach(function (s) { if (P.dishes[s]) a.items.push({ label: 'Gentler option', text: P.dishes[s].nameEn + ' (' + P.dishes[s].nameZh + ')' }); });
+  }
+  return a;
+}
+function parseHash() {
+  var h = (location.hash || '#/').slice(1);
+  var qi = h.indexOf('?');
+  var path = qi < 0 ? h : h.slice(0, qi);
+  var q = {};
+  if (qi >= 0) h.slice(qi + 1).split('&').forEach(function (kv) { var p = kv.split('='); if (p[0]) q[p[0]] = decodeURIComponent(p[1] || ''); });
+  return { parts: path.split('/').filter(Boolean), q: q };
+}
+var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* ---------- end core ---------- */
+
+
+/* ---------- sticker drawings (viewBox 0 0 120 100); each is drawn twice: a white die-cut edge, then the art ---------- */
+var ART = {
+  duck: '<ellipse cx="60" cy="84" rx="50" ry="10" fill="#FFFFFF"/>' +
+    '<path d="M18 66c-2-16 14-28 36-28 20 0 34 8 40 20 4 10-2 20-18 22-20 3-46 2-54-4-3-3-4-6-4-10z" fill="#C0532A"/>' +
+    '<path d="M80 54c2-12 0-22 4-30 4-8 14-9 18-2 3 5 1 11-4 12-4 1-6 4-6 10 0 6-1 12-4 16z" fill="#C0532A"/>' +
+    '<path d="M101 23l14 4-14 5z" fill="#F2A33A"/>' +
+    '<circle class="nos" cx="95" cy="24.5" r="2.6" fill="#2B1A12"/>' +
+    '<path d="M34 52c10-6 26-7 38-2" fill="none" stroke="#FFE3C9" style="stroke:#FFE3C9;stroke-width:5px"/>',
+  zhajiang: '<path d="M78 8L58 50M92 12L66 52" fill="none" stroke-width="6" style="stroke-width:6px"/><path d="M78 8L58 50M92 12L66 52" fill="none" style="stroke:#E3B072;stroke-width:3px"/>' +
+    '<path d="M16 52h88c0 22-18 38-44 38S16 74 16 52z" fill="#7CC7A8"/>' +
+    '<path d="M22 52c2-12 18-18 38-18s36 6 38 18z" fill="#F6D27A"/>' +
+    '<path d="M30 48c4-6 8-6 12 0s8 6 12 0 8-6 12 0 8 6 12 0" fill="none"/>' +
+    '<path d="M46 40c1-8 24-9 27-1 2 6-6 8-14 8s-14-2-13-7z" fill="#6A3B22"/>' +
+    '<path d="M28 40l8 3M82 38l9-2M88 46l8 1" fill="none" style="stroke:#5FA33A;stroke-width:5px"/>' +
+    '<path d="M28 66c18 6 46 6 64 0" fill="none" style="stroke-width:3px"/>',
+  chili: '<path d="M16 54h88c0 22-18 36-44 36S16 76 16 54z" fill="#FF9E7A"/>' +
+    '<ellipse cx="60" cy="54" rx="44" ry="9" fill="#E2483A"/>' +
+    '<path d="M30 52c4-6 8-6 12 0s8 6 12 0 8-6 12 0" fill="none" style="stroke:#F6D27A;stroke-width:5px"/>' +
+    '<path d="M64 16c14-6 32 0 40 14 3 6 3 12 0 16-6-10-18-18-32-20-8-1-12-6-8-10z" fill="#E2483A"/>' +
+    '<path d="M65 17c-4-5-4-10-1-14" fill="none" style="stroke:#4F8F2F;stroke-width:6px"/>' +
+    '<path d="M36 40c-4-5 4-8 0-14M48 38c-4-5 4-8 0-14" fill="none" style="stroke-width:3.5px"/>',
+  hotpot: '<ellipse cx="60" cy="88" rx="44" ry="7" fill="#FFFFFF"/>' +
+    '<path d="M50 10h20l3 34H47z" fill="#D98545"/>' +
+    '<path d="M14 46h92c-2 20-20 34-46 34S16 66 14 46z" fill="#D98545"/>' +
+    '<rect x="10" y="40" width="100" height="10" rx="5" fill="#E9A15E"/>' +
+    '<path d="M40 80l-4 8h48l-4-8z" fill="#B5652E"/>' +
+    '<path d="M22 38c4-6 10-6 14 0M84 38c4-6 10-6 14 0" fill="#F6B9B0"/>' +
+    '<path d="M52 8c-3-4 3-6 0-10M68 8c-3-4 3-6 0-10" fill="none" style="stroke-width:3px"/>',
+  dumplings: '<ellipse cx="60" cy="86" rx="52" ry="9" fill="#FFFFFF"/>' +
+    '<g transform="translate(34 56) rotate(-14)"><path d="M-28 12C-28-6-14-18 0-18S28-6 28 12C18 18-18 18-28 12Z" fill="#F7A9B8"/><path d="M-12-12l2 6M0-17v8M12-12l-2 6" fill="none" style="stroke-width:3px"/></g>' +
+    '<g transform="translate(86 56) rotate(14)"><path d="M-28 12C-28-6-14-18 0-18S28-6 28 12C18 18-18 18-28 12Z" fill="#A8D98A"/><path d="M-12-12l2 6M0-17v8M12-12l-2 6" fill="none" style="stroke-width:3px"/></g>' +
+    '<g transform="translate(60 72)"><path d="M-30 10C-30-8-15-20 0-20S30-8 30 10C20 16-20 16-30 10Z" fill="#B79BE6"/><path d="M-13-14l2 6M0-19v8M13-14l-2 6" fill="none" style="stroke-width:3px"/></g>',
+  douzhi: '<ellipse cx="60" cy="88" rx="50" ry="7" fill="#FFFFFF"/>' +
+    '<path d="M10 48h70c0 20-14 34-35 34S10 68 10 48z" fill="#FFFFFF"/>' +
+    '<ellipse cx="45" cy="48" rx="35" ry="7" fill="#B5C29A"/>' +
+    '<path d="M32 36c-4-5 4-8 0-14M46 34c-4-5 4-8 0-14M60 36c-4-5 4-8 0-14" fill="none" style="stroke-width:3.5px"/>' +
+    '<circle cx="94" cy="66" r="15" fill="none" style="stroke:#2B1A12;stroke-width:14px"/><circle cx="94" cy="66" r="15" fill="none" style="stroke:#E3A64A;stroke-width:7px"/>',
+  taxi: '<path d="M10 66V52l12-22h76l12 22v14z" fill="#FFD233"/><path d="M28 50l7-14h50l7 14z" fill="#CFE8F7"/><rect x="48" y="20" width="24" height="10" rx="3" fill="#2B1A12"/>' +
+    '<circle cx="34" cy="70" r="10" fill="#2B1A12"/><circle cx="86" cy="70" r="10" fill="#2B1A12"/>',
+  bowl: '<path d="M10 44h100c0 26-22 44-50 44S10 70 10 44z" fill="#FF9E7A"/><path d="M24 44c4-8 8-8 12 0s8 8 12 0 8-8 12 0 8 8 12 0 8-8 12 0" fill="none" style="stroke:#2B1A12"/><path d="M70 6L52 40M86 10L62 42" fill="none" style="stroke-width:6px"/>'
+};
+function sticker(name, cls) {
+  var a = ART[name] || ART.bowl;
+  return '<svg class="st ' + (cls || '') + '" viewBox="0 0 120 100" aria-hidden="true" focusable="false"><g class="edge">' + a + '</g><g class="art">' + a + '</g></svg>';
+}
+var LOOK = {
+  'siji-minfu-gugong': { c: 'var(--butter)', art: 'duck', rot: '-6deg' },
+  'pang-mei-noodles': { c: 'var(--mint)', art: 'chili', rot: '5deg' },
+  'man-heng-ji': { c: 'var(--rose)', art: 'hotpot', rot: '-4deg' },
+  'bao-yuan': { c: 'var(--lilac)', art: 'dumplings', rot: '6deg' },
+  'huguosi-snacks': { c: 'var(--sky)', art: 'douzhi', rot: '-5deg' },
+  'no69-fangzhuanchang': { c: 'var(--peach)', art: 'zhajiang', rot: '4deg' }
+};
+function lk(r) { return LOOK[r.id] || { c: 'var(--peach)', art: 'bowl', rot: '0deg' }; }
+var IC = {
+  x: '<path d="M6 6l12 12M18 6L6 18"/>', check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>', right: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  left: '<path d="M19 12H5M11 6l-6 6 6 6"/>', plus: '<path d="M12 5v14M5 12h14"/>', warn: '<path d="M12 3l9.5 17h-19z"/><path d="M12 10v4.5M12 17.4v.1"/>',
+  heart: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>', q: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17.4v.1"/>',
+  dash: '<path d="M7 12h10"/>', expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>'
+};
+function ic(n) { return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + IC[n] + '</svg>'; }
+
+/* ---------- state ---------- */
+var first = parseSentence(PREFILL);
+var S = { said: PREFILL, chips: first.chips.slice(), party: first.party || 2, submitted: false, diet: null, picking: false, animate: true };
+function curDiet() { return S.diet || groups(S.chips).diet; }
+function homeHash() { return S.submitted ? '#/?chips=' + S.chips.join(',') + '&n=' + S.party : '#/'; }
+function orderHash(id, n, diet) { return '#/order/' + id + '?n=' + (n || S.party) + '&diet=' + (diet || curDiet()).join(','); }
+function cardHash(id, i) { return '#/card/' + id + '?n=' + S.party + '&diet=' + curDiet().join(',') + (i ? '&c=' + i : ''); }
+var root = document.getElementById('root'), ov = document.getElementById('ov');
+
+function header(back, backLabel) {
+  return '<header class="hd">' + (back ? '<a class="back press" href="' + back + '" aria-label="' + esc(backLabel) + '">' + ic('left') + '</a>' : '') +
+    '<a class="wm" href="' + homeHash() + '">' + sticker('bowl') + '<b>China Food Guide</b></a><span class="tag">Prototype<br>draft data</span></header>';
+}
+function fitsHtml(e) {
+  return '<ul class="fits">' + e.fits.map(function (f) { return '<li>' + ic('check') + esc(f) + '</li>'; }).join('') +
+    e.unknown.map(function (f) { return '<li class="u">' + ic('dash') + esc(f) + '</li>'; }).join('') + '</ul>' +
+    (e.misses.length ? '<p class="miss">Misses: ' + esc(e.misses.join('; ')) + '</p>' : '');
+}
+function dietHtml(e) {
+  return e.diet.map(function (d) { return '<p class="dline ' + d.tone + '">' + ic(d.tone === 'clash' ? 'warn' : 'q') + '<span><b>' + esc(d.label) + ':</b> ' + d.text + '</span></p>'; }).join('');
+}
+
+/* ---------- home: an uneven grid, tile size follows the job ---------- */
+function homeView() {
+  var h = header() + (S.submitted ? '' : '<p class="hello">Hungry? Let’s find your table in Beijing.</p>') + '<div class="grid">';
+  var d = 0;
+  function delay() { d += S.animate ? 0.05 : 0; return S.animate ? 'style="--d:' + d.toFixed(2) + 's' : 'style="'; }
+  h += '<section class="tile wide t-tell" ' + delay() + '" aria-labelledby="tell-h">';
+  if (!S.submitted) {
+    h += '<h2 id="tell-h">Tell me about tonight</h2><form id="tellf"><label for="say" style="position:absolute;left:-9999px">Describe your meal</label><textarea class="say" id="say" rows="4" spellcheck="false">' + esc(S.said) + '</textarea>' +
+      '<button class="btn ink full press" type="submit" data-act="parse" style="margin-top:10px">Turn it into chips ' + ic('right') + '</button></form>' +
+      '<p class="demo">A scripted demo for now: keyword rules read your sentence, no model is connected.</p>';
+  } else {
+    h += '<h2 id="tell-h">Here’s what I heard from you</h2><div class="chips">' + S.chips.map(function (v) {
+      return '<button class="chip press" data-act="rm" data-v="' + v + '" aria-label="Remove ' + esc(OPT[v].label) + '">' + esc(OPT[v].label) + '<span class="x">' + ic('x') + '</span></button>';
+    }).join('') + '<button class="chip add press" data-act="pick" aria-expanded="' + S.picking + '">' + ic('plus') + (S.picking ? 'Done' : 'Add') + '</button></div>' +
+      (S.picking ? picker() : '') +
+      '<p class="demo">Scripted demo, no model connected. <a class="linkish" href="#/" data-act="edit">Change my sentence</a></p>';
+  }
+  h += '</section>';
+  if (!S.submitted) {
+    h += '<section class="tile wide sheet6" ' + delay() + '"><h3>Six places to start with</h3><ul>' + P.restaurants.map(function (r) {
+      var l = lk(r);
+      return '<li><a class="press" href="#/r/' + r.id + '" style="--c:' + l.c + ';--rot:' + l.rot + '">' + sticker(l.art) + esc(splitName(r.nameEn).main.replace(/^Niujie Halal /, '')) + '</a></li>';
+    }).join('') + '</ul></section>';
+  } else {
+    var rk = ranked(S.chips);
+    var best = rk[0], mids = rk.slice(1, 3), rest = rk.slice(3);
+    var bl = lk(best.r), bn = splitName(best.r.nameEn);
+    h += '<a class="tile wide t-best press" href="#/r/' + best.r.id + '" ' + delay() + ';--c:' + bl.c + '">' + sticker(bl.art) +
+      '<span class="badge">' + (best.e.full ? 'Your best bet: fits all your chips' : 'Closest to your chips') + '</span>' +
+      '<h3>' + esc(bn.main) + '</h3>' + zh(best.r.nameZh) +
+      fitsHtml(best.e) + dietHtml(best.e) + '<span class="go-arrow">' + ic('right') + '</span></a>';
+    var cardDiet = groups(S.chips).diet.filter(function (v) { return P.cards[v]; });
+    h += mids.map(function (x, i) {
+      var l = lk(x.r);
+      return '<a class="tile t-mid press" href="#/r/' + x.r.id + '" ' + delay() + ';--c:' + l.c + ';--rot:' + l.rot + '">' + sticker(l.art) +
+        '<h3>' + esc(splitName(x.r.nameEn).main.replace(/^Niujie Halal /, '')) + '</h3>' + zh(x.r.nameZh) + fitsHtml(x.e) + '</a>';
+    }).join('');
+    h += '<a class="tile tall t-card press" href="' + cardHash(best.r.id) + '" ' + delay() + '"><h3>Your staff card</h3>' +
+      (function () {
+        var m = cardModel(buildOrder(best.r, S.party, cardDiet), cardDiet[0] || null);
+        return '<div class="preview" aria-label="Preview of the card">' + zh(m.greeting.zh, 'zs') +
+          m.items.map(function (it) { return zh(it.zh + (it.qzh ? ' ' + it.qzh : ''), 'zo'); }).join('') +
+          (m.card ? zh(m.card.statement.zh) : '') + zh(m.closing.zh, 'zs') +
+          '<small>' + (m.card ? esc(m.card.titleEn) + ' and your order, in Chinese for the staff' : 'Pick something you can’t eat and the card says it for you.') + '</small></div>';
+      })() +
+      '<span class="btn ink">Show staff ' + ic('right') + '</span></a>';
+    h += '<section class="tile wide t-rest" ' + delay() + '"><h3>Not quite your chips, still worth a look</h3><ul>' + rest.map(function (x) {
+      var l = lk(x.r);
+      return '<li><a href="#/r/' + x.r.id + '" class="press">' + sticker(l.art) + '<span>' + esc(splitName(x.r.nameEn).main) + (x.e.clash ? '<p>Clashes with “' + esc(x.e.diet.filter(function (q) { return q.tone === 'clash'; })[0].label) + '”</p>' : '<p>' + esc(P.districts[x.r.district].nameEn) + ', ' + esc(CUISINE[x.r.cuisines[0]]) + '</p>') + '</span></a></li>';
+    }).join('') + '</ul></section>';
+    var lib = libDishes(best.r)[0] ? { r: best.r, d: libDishes(best.r)[0] } : null;
+    if (!lib) P.restaurants.some(function (r) { var l = libDishes(r)[0]; if (l) { lib = { r: r, d: l }; return true; } return false; });
+    if (lib) h += '<a class="tile wide t-dish press" href="#/r/' + lib.r.id + '?ask=' + lib.d.slug + '" ' + delay() + '">' + sticker(lk(lib.r).art) +
+      '<span><h3>New to ' + esc(shortDish(lib.d)) + '?</h3><p>Ask me what it is, how you eat it, and what’s in it.</p></span></a>';
+  }
+  h += '</div><p class="foot">Six draft places in Beijing. A fact shows here only when two different sources agree; each place says when it was checked.</p>';
+  S.animate = false;
+  return h;
+}
+function picker() {
+  var by = {};
+  OPTS.forEach(function (o) { (by[o.k] = by[o.k] || []).push(o); });
+  return '<div class="picker">' + Object.keys(by).map(function (k) {
+    return '<h3>' + esc(GROUP_LABEL[k]) + '</h3><div class="chips">' + by[k].map(function (o) {
+      return '<button class="chip press" data-act="toggle" data-v="' + o.v + '" aria-pressed="' + (S.chips.indexOf(o.v) >= 0) + '" style="padding:0 14px">' + esc(o.label) + '</button>';
+    }).join('') + '</div>';
+  }).join('') + '</div>';
+}
+
+/* ---------- restaurant ---------- */
+function placeView(r) {
+  var l = lk(r), n = splitName(r.nameEn), e = evaluate(r, S.chips), lib = libDishes(r), nc = notConfirmed(r);
+  var h = header(homeHash(), 'Back to your picks');
+  h += '<section class="hero" style="--c:' + l.c + '">' + sticker(l.art) + '<h1>' + esc(n.main) + '</h1>' + (n.sub ? '<p class="sub">' + esc(n.sub) + '</p>' : '') + zh(r.nameZh) +
+    '<div class="pills"><span class="pill">' + esc(P.districts[r.district].nameEn) + '</span><span class="pill">' + esc(CUISINE[r.cuisines[0]]) + '</span>' +
+    (r.priceBand ? '<span class="pill">' + esc(PRICE[r.priceBand]) + '</span>' : '<span class="pill u">Price band not confirmed</span>') +
+    (r.nearForbiddenCity ? '<span class="pill">Near the Forbidden City</span>' : '') + '</div></section>';
+  h += '<div class="body"><p class="why">' + esc(r.why) + '</p>';
+  if (S.submitted && S.chips.length) h += fitsHtml(e) + dietHtml(e);
+  h += '<div class="acts"><a class="btn ink press" href="' + orderHash(r.id) + '">Build my order</a>' +
+    (lib.length ? '<a class="btn out press" href="#/r/' + r.id + '?ask=' + lib[0].slug + '">Ask about a dish</a>'
+      : '<a class="btn out press" aria-disabled="true" href="#/r/' + r.id + '?ask=none">Ask about a dish</a>') + '</div>';
+  h += '<button class="ticket press" data-act="driver" aria-label="Show the address full screen for your driver"><span class="top">' + sticker('taxi') + '<span>Show this to your driver</span>' + ic('expand') + '</span>' +
+    zh(r.addressZh) + '<span class="en">' + esc(r.addressEn) + '</span></button>' +
+    (r.addressPartial ? '<p class="note">' + esc(r.addressPartial) + '</p>' : '');
+  h += '<section class="blob a"><h2>What local sources say</h2><p>' + esc(r.localView) + '</p></section>' +
+    '<section class="blob b"><h2>What it’s like for you</h2><p>' + esc(r.visitorView) + '</p></section>';
+  var ver = verifiedDishes(r), one = singleDishes(r);
+  h += '<section class="blob c"><h2>What you can order here</h2><ul class="dishes">' + ver.map(function (d) {
+    var inner = '<span class="nm">' + zh(d.nameZh) + '<span class="en">' + esc(d.nameEn) + '</span></span><span class="b2">Two sources</span>';
+    return '<li>' + (d.slug ? '<a class="dish press" href="#/r/' + r.id + '?ask=' + d.slug + '">' + inner + '</a>' : '<div class="dish">' + inner + '</div>') + '</li>';
+  }).join('') + one.map(function (d) {
+    return '<li><div class="dish single"><span class="nm">' + zh(d.nameZh) + '<span class="en">' + esc(d.nameEn) + '</span></span><span class="b1">One source</span></div></li>';
+  }).join('') + '</ul>' +
+    '<p class="note" style="margin-left:0">' + (lib.length ? 'Tap ' + esc(listJoin(lib.map(shortDish))) + ' and I’ll tell you about it.' : 'None of these has an entry in our dish notes yet, so there are no allergen notes to show you.') + '</p></section>';
+  if (nc.length) h += '<p class="dline" style="background:var(--white);border:3px solid var(--ink)">' + ic('q') + '<span><b>Still to check:</b> no two sources agree yet on ' + esc(listJoin(nc)) + '. Worth asking when you arrive.</span></p>';
+  h += '<p class="srcs">Sources: ' + esc(sourceNames(r).join('; ')) + '. Checked ' + esc(fmtDate(r.checkedOn)) + '.</p></div>';
+  return h;
+}
+function askOverlay(r, slug, topic) {
+  if (slug === 'none' || !P.dishes[slug]) {
+    return '<div class="ov" data-act="close-ask"><section class="chat" role="dialog" aria-modal="true" aria-labelledby="ask-h"><div class="chat-h">' + sticker(lk(r).art) + '<h2 id="ask-h">Nothing to ask about yet</h2><a class="close press" href="#/r/' + r.id + '" aria-label="Close">' + ic('x') + '</a></div>' +
+      '<div class="bubbles"><div class="them"><p>None of the dishes at ' + esc(splitName(r.nameEn).main) + ' has an entry in our dish notes yet, so I have nothing to answer from. The staff card can ask for you.</p></div></div></section></div>';
+  }
+  var d = P.dishes[slug], a = askAnswer(slug, topic);
+  return '<div class="ov" data-act="close-ask"><section class="chat" role="dialog" aria-modal="true" aria-labelledby="ask-h">' +
+    '<div class="chat-h">' + sticker(lk(r).art) + '<h2 id="ask-h">' + esc(shortDish(d)) + zh(d.nameZh) + '</h2><a class="close press" href="#/r/' + r.id + '" aria-label="Close">' + ic('x') + '</a></div>' +
+    '<p class="demo">Scripted demo: I only quote our dish notes, no model connected.</p>' +
+    '<div class="bubbles" aria-live="polite"><div class="me">' + esc(a.q) + '</div><div class="them">' +
+    a.paras.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') +
+    (a.items.length ? '<dl>' + a.items.map(function (it) { return '<dt>' + esc(it.label) + '</dt><dd>' + esc(it.text) + '</dd>'; }).join('') + '</dl>' : '') +
+    (a.caution ? '<p class="warn">' + ic('warn') + '<span>' + esc(a.caution) + '</span></p>' : '') +
+    '<p class="from">From our dish notes on ' + esc(shortDish(d)) + ' (draft). Typical preparation, not this kitchen.</p></div></div>' +
+    '<div class="qbtns" role="group" aria-label="Ask something else">' + ASK_TOPICS.map(function (t) {
+      return '<a class="press" href="#/r/' + r.id + '?ask=' + slug + '&t=' + t[0] + '" aria-current="' + (t[0] === topic) + '">' + esc(t[1]) + '</a>';
+    }).join('') + '</div></section></div>';
+}
+
+/* ---------- order ---------- */
+function orderView(r) {
+  var l = lk(r), diet = curDiet(), o = buildOrder(r, S.party, diet);
+  var h = header('#/r/' + r.id, 'Back to ' + splitName(r.nameEn).main) + '<h1 class="h1">Let’s build your order</h1>' +
+    '<div class="minir" style="--c:' + l.c + '">' + sticker(l.art) + '<span><b>' + esc(splitName(r.nameEn).main) + '</b>' + zh(r.nameZh) + '</span></div>';
+  h += '<p class="q" id="who">Who’s eating?</p><div class="pebbles" role="group" aria-labelledby="who">' + [1, 2, 3, 4, 5, 6].map(function (n) {
+    return '<a class="press" href="' + orderHash(r.id, n, diet) + '" aria-current="' + (n === S.party) + '" aria-label="' + n + (n === 1 ? ' person' : ' people') + '">' + n + '</a>';
+  }).join('') + '</div>';
+  h += '<p class="q" id="cant">Anything you can’t eat?</p><div class="needs" role="group" aria-labelledby="cant">' + ['no-pork', 'peanut', 'sesame'].map(function (v) {
+    var on = diet.indexOf(v) >= 0, next = on ? diet.filter(function (x) { return x !== v; }) : diet.concat([v]);
+    return '<a class="need press" role="button" aria-pressed="' + on + '" href="' + orderHash(r.id, S.party, next) + '"><span class="bx">' + (on ? ic('check') : '') + '</span>' + esc(OPT[v].label) + '</a>';
+  }).join('') + '</div><p class="demo" style="margin:10px 18px 0">Scripted demo: I only pick from this place’s verified dish list. No model connected.</p>';
+  h += '<section class="tray"><h2>Here’s your order, for ' + S.party + '</h2>';
+  if (o.order.length) h += '<ul class="olist">' + o.order.map(item).join('') + '</ul>';
+  if (o.ask.length) h += '<p class="sub-h">Ask the staff first</p><ul class="olist">' + o.ask.map(item).join('') + '</ul>';
+  if (!o.order.length && !o.ask.length) h += '<p class="dline clash">' + ic('warn') + '<span>Nothing on this place’s verified dish list fits what you can’t eat. Your card still helps: it asks the staff to recommend dishes that do.</span></p>';
+  if (o.out.length) h += '<p class="sub-h">Left out for you</p><ul class="outl">' + o.out.map(function (x) { return '<li class="dline clash">' + ic('warn') + '<span>' + zh(x.d.nameZh) + ' ' + esc(x.d.nameEn) + ': ' + esc(x.why) + '</span></li>'; }).join('') + '</ul>';
+  if (o.single.length) h += '<p class="note" style="margin-left:0">' + o.single.length + ' more ' + (o.single.length === 1 ? 'dish has' : 'dishes have') + ' only one source, so I left ' + (o.single.length === 1 ? 'it' : 'them') + ' out.</p>';
+  if (o.order.length + o.ask.length === 1) h += '<p class="note" style="margin-left:0">We only have one verified dish here that fits. Your card asks the staff to suggest more.</p>';
+  h += '</section><div class="cta"><a class="btn ink full press" href="' + cardHash(r.id) + '" style="min-height:60px;font-size:21px">Make my staff card ' + ic('right') + '</a></div>';
+  return h;
+  function item(it) {
+    return '<li>' + (it.d.slug ? sticker(l.art) : '<span class="dotz" aria-hidden="true"></span>') + '<div>' + zh(it.d.nameZh) + (it.qty.zh ? '<span class="qz zh" lang="zh-Hans">' + esc(it.qty.zh) + '</span>' : '') +
+      '<span class="en">' + esc(it.d.nameEn) + '</span><p>' + esc(it.qty.en) + '</p>' +
+      (it.typical.length ? '<p>Typically contains ' + esc(it.typical.join(', ')) + '.</p>' : '') +
+      (it.why ? '<p class="warn">' + ic('warn') + '<span>' + esc(it.why) + '</span></p>' : '') + '</div></li>';
+  }
+}
+
+/* ---------- staff card ---------- */
+function cardView(r, q) {
+  var o = buildOrder(r, S.party, curDiet()), ids = o.cards;
+  var ci = Math.max(0, Math.min(ids.length - 1, Number(q.c) || 0));
+  var m = cardModel(o, ids[ci] || null);
+  return '<div class="cardv"><div class="ctop"><a class="back press" href="' + orderHash(r.id) + '" aria-label="Back to your order">' + ic('left') + '</a>' +
+    '<span class="t">Hand this to the staff at ' + esc(splitName(r.nameEn).main) + '</span><span class="tag">Prototype<br>draft data</span></div>' +
+    (ids.length > 1 ? '<div class="cswitch">' + ids.map(function (id, i) { return '<a class="press" href="' + cardHash(r.id, i) + '" aria-current="' + (i === ci) + '">' + esc(P.cards[id].titleEn) + '</a>'; }).join('') + '</div>' : '') +
+    '<section class="paper" lang="zh-Hans"><p class="g">' + esc(m.greeting.zh) + '</p>' +
+    (m.items.length ? '<ul>' + m.items.map(function (it) { return '<li>' + esc(it.zh) + (it.qzh ? '<b>' + esc(it.qzh) + '</b>' : '') + '</li>'; }).join('') + '</ul>' : '') +
+    (m.card ? '<p class="st1">' + esc(m.body[0].zh) + '</p>' + m.body.slice(1).map(function (x) { return '<p class="s2">' + esc(x.zh) + '</p>'; }).join('') : '') +
+    '<p class="cl">' + esc(m.closing.zh) + '</p></section>' +
+    '<section class="gloss"><h2>What it says, in English</h2><p>' + esc(m.greeting.en) + '</p>' +
+    (m.items.length ? '<ol>' + m.items.map(function (it) { return '<li><b>' + esc(it.en) + '</b>' + (it.qen ? '. ' + esc(it.qen) : '') + '</li>'; }).join('') + '</ol>' : '<p><i>No dish from the verified list fits, so the card lists none.</i></p>') +
+    (m.card ? m.body.map(function (x) { return '<p>' + esc(x.en) + '</p>'; }).join('') : '<p><i>You haven’t picked anything you can’t eat, so there’s no dietary line.</i></p>') +
+    '<p>' + esc(m.closing.en) + '</p>' + (m.card && m.card.noteEn ? '<p>' + esc(m.card.noteEn) + '</p>' : '') +
+    '<p class="warn">' + ic('warn') + '<span>' + esc(P.cardsDisclaimer) + '</span></p></section></div>';
+}
+
+/* ---------- router ---------- */
+var lastView = '';
+function render() {
+  var h = parseHash(), p = h.parts, q = h.q;
+  if (q.chips !== undefined) {
+    var c = q.chips.split(',').filter(function (v) { return OPT[v]; });
+    if (!S.submitted || c.join() !== S.chips.join()) { S.chips = c; S.diet = null; }
+    S.submitted = true;
+  } else if (!p.length) S.submitted = false;
+  if (q.n) S.party = Math.max(1, Math.min(6, Math.round(Number(q.n) || 2)));
+  if (q.diet !== undefined) S.diet = q.diet.split(',').filter(function (v) { return P.cards[v]; });
+  var r = p[1] ? byId(p[1]) : null;
+  var view = p[0] === 'r' && r ? 'r-' + r.id : p[0] === 'order' && r ? 'o-' + r.id : p[0] === 'card' && r ? 'c-' + r.id : 'home';
+  var same = view === lastView;
+  var y = window.scrollY;
+  if (view.indexOf('r-') === 0) root.innerHTML = '<div class="app">' + placeView(r) + '</div>';
+  else if (view.indexOf('o-') === 0) root.innerHTML = '<div class="app">' + orderView(r) + '</div>';
+  else if (view.indexOf('c-') === 0) root.innerHTML = cardView(r, q);
+  else root.innerHTML = '<div class="app">' + homeView() + '</div>';
+  ov.innerHTML = (view.indexOf('r-') === 0 && q.ask) ? askOverlay(r, q.ask, q.t || 'what') : '';
+  lastView = view;
+  window.scrollTo(0, same ? y : 0);
+}
+function act(a, t, e) {
+  if (a === 'parse') {
+    var ta = document.getElementById('say');
+    S.said = (ta && ta.value.trim()) || PREFILL;
+    var p = parseSentence(S.said);
+    S.chips = p.chips; if (p.party) S.party = p.party; S.diet = null; S.submitted = true; S.picking = false; S.animate = true;
+    location.hash = homeHash();
+  } else if (a === 'rm') {
+    var v = t.getAttribute('data-v');
+    t.classList.add('bye');
+    setTimeout(function () { S.chips = S.chips.filter(function (x) { return x !== v; }); S.diet = null; location.hash = homeHash(); }, REDUCED ? 0 : 160);
+  } else if (a === 'pick') { S.picking = !S.picking; render(); }
+  else if (a === 'toggle') {
+    var w = t.getAttribute('data-v');
+    S.chips = S.chips.indexOf(w) >= 0 ? S.chips.filter(function (x) { return x !== w; }) : S.chips.concat([w]);
+    S.diet = null; location.hash = homeHash();
+  } else if (a === 'edit') { S.submitted = false; S.animate = true; location.hash = '#/'; render(); }
+  else if (a === 'driver') {
+    var r = byId(parseHash().parts[1]);
+    var d = document.createElement('div');
+    d.innerHTML = '<div class="driver" role="dialog" aria-modal="true" aria-label="Address for your driver"><button class="close press" data-act="close-driver" aria-label="Close">' + ic('x') + '</button><div class="in"><p>Please take me here</p>' + zh(r.addressZh) + '<p style="margin-top:14px;font-family:Nunito,sans-serif;font-size:17px;font-weight:700">' + esc(r.addressEn) + '</p></div></div>';
+    document.body.appendChild(d.firstChild);
+    document.querySelector('.driver .close').focus();
+  } else if (a === 'close-driver') { var dr = document.querySelector('.driver'); if (dr) dr.remove(); }
+  else if (a === 'close-ask') { if (e.target === t) location.hash = '#/r/' + parseHash().parts[1]; }
+}
+document.addEventListener('click', function (e) {
+  var t = e.target.closest('[data-act]');
+  if (!t) return;
+  var a = t.getAttribute('data-act');
+  if (a === 'close-ask') { if (e.target === t) { e.preventDefault(); act(a, t, e); } return; }
+  e.preventDefault();
+  act(a, t, e);
+});
+document.addEventListener('submit', function (e) { if (e.target.id === 'tellf') { e.preventDefault(); act('parse'); } });
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  var dr = document.querySelector('.driver');
+  if (dr) dr.remove(); else if (ov.innerHTML) location.hash = '#/r/' + parseHash().parts[1];
+});
+window.addEventListener('hashchange', render);
+render();
+})();
+</script>
+</body>
+</html>
