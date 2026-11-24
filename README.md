@@ -1,7 +1,7 @@
-# One guide, eight looks
+# One guide, six looks
 
 A design study: the same phone prototype of an English restaurant guide for
-first-time visitors to Beijing, drawn eight different ways.
+first-time visitors to Beijing, drawn six different ways.
 
 Open it: https://kuk1song.github.io/food-guide-looks/
 
@@ -13,7 +13,6 @@ Open it: https://kuk1song.github.io/food-guide-looks/
 ## Fonts
 
 Self-hosted latin subsets from Fontsource. SIL Open Font License 1.1: Anton,
-Anybody, Atkinson Hyperlegible Next, Bodoni Moda, Bricolage Grotesque, Courier
-Prime, Fraunces, Fredoka, IBM Plex Mono, Instrument Serif, Jost, Libre Franklin,
-Newsreader, Nunito, Overpass, Schibsted Grotesk. Apache License 2.0: Permanent
-Marker.
+Anybody, Atkinson Hyperlegible Next, Bricolage Grotesque, Courier Prime,
+Fraunces, Fredoka, IBM Plex Mono, Instrument Serif, Libre Franklin, Newsreader,
+Nunito, Overpass. Apache License 2.0: Permanent Marker.
